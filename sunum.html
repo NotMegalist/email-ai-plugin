@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yapay Zeka Destekli E-Posta Kategorilendirme - İlerleme Sunumu</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',sans-serif;background:#0a0a1a;color:#fff;height:100vh;overflow:hidden;}
+  .slides{width:100%;height:100vh;position:relative;}
+  .slide{position:absolute;top:0;left:0;width:100%;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px;opacity:0;transform:translateX(100px);transition:all 0.6s cubic-bezier(.4,0,.2,1);pointer-events:none;}
+  .slide.active{opacity:1;transform:translateX(0);pointer-events:all;}
+  .slide.prev{opacity:0;transform:translateX(-100px);}
+
+  /* Backgrounds */
+  .slide-1{background:linear-gradient(135deg,#0a0a1a 0%,#1a0a2e 50%,#0d1b2a 100%);}
+  .slide-2{background:linear-gradient(135deg,#0d1b2a 0%,#1a2a4a 100%);}
+  .slide-3{background:linear-gradient(135deg,#0a1628 0%,#1a0a2e 100%);}
+  .slide-4{background:linear-gradient(135deg,#0d2a1a 0%,#0a1628 100%);}
+  .slide-5{background:linear-gradient(135deg,#1a1a0a 0%,#2a1a0a 100%);}
+  .slide-6{background:linear-gradient(135deg,#1a0a0a 0%,#2a0d1a 100%);}
+  .slide-7{background:linear-gradient(135deg,#0a0d2a 0%,#1a0a2e 100%);}
+
+  /* Title Slide */
+  .title-badge{background:linear-gradient(135deg,#6c63ff,#3ecfcf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;}
+  .title-main{font-size:48px;font-weight:800;line-height:1.15;text-align:center;margin-bottom:20px;}
+  .title-main span{background:linear-gradient(135deg,#6c63ff,#3ecfcf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .title-sub{font-size:16px;color:#8892a4;text-align:center;max-width:600px;line-height:1.6;margin-bottom:40px;}
+  .title-meta{display:flex;gap:30px;flex-wrap:wrap;justify-content:center;}
+  .meta-item{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px 24px;font-size:13px;color:#b0bec5;}
+  .meta-item span{color:#6c63ff;font-weight:700;}
+
+  /* Slide Headers */
+  .slide-number{font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#6c63ff;margin-bottom:16px;}
+  .slide-title{font-size:36px;font-weight:800;margin-bottom:8px;}
+  .slide-title .accent{background:linear-gradient(135deg,#6c63ff,#3ecfcf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .slide-divider{width:60px;height:4px;background:linear-gradient(90deg,#6c63ff,#3ecfcf);border-radius:2px;margin-bottom:36px;}
+
+  /* Cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;width:100%;max-width:900px;}
+  .card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:24px;transition:transform 0.3s,box-shadow 0.3s;}
+  .card:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(108,99,255,0.15);}
+  .card-icon{font-size:32px;margin-bottom:12px;}
+  .card-title{font-size:15px;font-weight:700;color:#e0e6f0;margin-bottom:8px;}
+  .card-text{font-size:13px;color:#7a8899;line-height:1.6;}
+
+  /* Tech Stack */
+  .tech-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:800px;}
+  .tech-item{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:18px 22px;display:flex;align-items:center;gap:16px;}
+  .tech-icon{font-size:28px;min-width:40px;text-align:center;}
+  .tech-label{font-size:12px;color:#6c63ff;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+  .tech-name{font-size:14px;color:#d0dae8;font-weight:600;}
+
+  /* Architecture */
+  .arch{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;width:100%;max-width:900px;}
+  .arch-box{background:rgba(255,255,255,0.06);border:1px solid rgba(108,99,255,0.3);border-radius:14px;padding:18px 22px;text-align:center;min-width:150px;}
+  .arch-box .icon{font-size:30px;margin-bottom:8px;}
+  .arch-box .label{font-size:12px;color:#8892a4;margin-bottom:4px;}
+  .arch-box .name{font-size:14px;font-weight:700;color:#e0e6f0;}
+  .arch-arrow{font-size:24px;color:#6c63ff;padding:0 12px;}
+
+  /* Progress bars */
+  .progress-list{width:100%;max-width:700px;}
+  .progress-item{margin-bottom:22px;}
+  .progress-header{display:flex;justify-content:space-between;margin-bottom:8px;}
+  .progress-label{font-size:14px;font-weight:600;color:#d0dae8;}
+  .progress-pct{font-size:14px;font-weight:700;color:#6c63ff;}
+  .progress-bar{height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;}
+  .progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#6c63ff,#3ecfcf);transition:width 1s ease;}
+
+  /* Status list */
+  .status-list{width:100%;max-width:800px;}
+  .status-item{display:flex;align-items:flex-start;gap:16px;padding:16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;margin-bottom:12px;}
+  .status-icon{font-size:22px;margin-top:2px;}
+  .status-title{font-size:14px;font-weight:700;color:#e0e6f0;margin-bottom:4px;}
+  .status-desc{font-size:13px;color:#7a8899;line-height:1.5;}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-left:8px;}
+  .badge.done{background:rgba(62,207,111,0.15);color:#3ecf6f;}
+  .badge.progress{background:rgba(108,99,255,0.15);color:#8a7fff;}
+  .badge.pending{background:rgba(255,200,0,0.12);color:#ffc800;}
+
+  /* Conclusion */
+  .conclusion-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%;max-width:800px;}
+  .conclusion-item{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:22px;}
+  .conclusion-item h4{font-size:14px;font-weight:700;color:#6c63ff;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;}
+  .conclusion-item ul{list-style:none;padding:0;}
+  .conclusion-item ul li{font-size:13px;color:#8892a4;padding:5px 0;padding-left:16px;position:relative;line-height:1.5;}
+  .conclusion-item ul li::before{content:"→";position:absolute;left:0;color:#3ecfcf;}
+
+  /* Navigation */
+  nav{position:fixed;bottom:36px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;z-index:100;background:rgba(255,255,255,0.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:50px;padding:12px 28px;}
+  .nav-btn{background:rgba(108,99,255,0.2);border:1px solid rgba(108,99,255,0.4);color:#fff;padding:10px 22px;border-radius:25px;cursor:pointer;font-size:14px;font-weight:600;font-family:'Inter',sans-serif;transition:all 0.3s;}
+  .nav-btn:hover{background:rgba(108,99,255,0.5);}
+  .nav-dots{display:flex;gap:8px;}
+  .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);cursor:pointer;transition:all 0.3s;}
+  .dot.active{background:#6c63ff;transform:scale(1.3);}
+
+  /* Key shortcut hint */
+  .hint{position:fixed;top:24px;right:24px;font-size:12px;color:#4a5568;background:rgba(255,255,255,0.04);padding:8px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);}
+</style>
+</head>
+<body>
+
+<div class="slides" id="slides">
+
+  <!-- SLIDE 1: Kapak -->
+  <div class="slide slide-1 active">
+    <div class="title-badge">📧 Bitirme Projesi · İlerleme Sunumu</div>
+    <h1 class="title-main">Yapay Zeka Destekli<br><span>Gmail E-Posta</span><br>Kategorilendirme Eklentisi</h1>
+    <p class="title-sub">Makine öğrenmesi tabanlı gerçek zamanlı e-posta sınıflandırma sistemi — Normal, Önemli, Spam ve Oltalama tespiti</p>
+    <div class="title-meta">
+      <div class="meta-item">Tarih: <span>Mayıs 2026</span></div>
+      <div class="meta-item">Aşama: <span>Geliştirme Tamamlandı</span></div>
+      <div class="meta-item">Durum: <span>✅ Çalışır</span></div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: Proje Özeti -->
+  <div class="slide slide-2">
+    <div class="slide-number">01 / 06</div>
+    <h2 class="slide-title">Proje <span class="accent">Özeti</span></h2>
+    <div class="slide-divider"></div>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <div class="card-title">Amaç</div>
+        <div class="card-text">Gmail gelen kutusundaki e-postaları yapay zeka ile otomatik olarak kategorilendiren bir eklenti geliştirmek.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <div class="card-title">Yöntem</div>
+        <div class="card-text">TF-IDF özellik çıkarımı + Multinomial Naive Bayes sınıflandırıcısı. Hibrit: ML + kural tabanlı destekleme.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📂</div>
+        <div class="card-title">4 Kategori</div>
+        <div class="card-text">Normal · Önemli · Spam · Oltalama (Phishing). Oltalama tespitinde otomatik uyarı e-postası gönderilir.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔗</div>
+        <div class="card-title">Entegrasyon</div>
+        <div class="card-text">Google Apps Script (GAS) ile Gmail'e gömülü çalışır. Flask REST API üzerinden gerçek zamanlı iletişim.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: Mimari -->
+  <div class="slide slide-3">
+    <div class="slide-number">02 / 06</div>
+    <h2 class="slide-title">Sistem <span class="accent">Mimarisi</span></h2>
+    <div class="slide-divider"></div>
+    <div class="arch">
+      <div class="arch-box">
+        <div class="icon">📬</div>
+        <div class="label">Kullanıcı</div>
+        <div class="name">Gmail</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">
+        <div class="icon">⚙️</div>
+        <div class="label">Plugin</div>
+        <div class="name">Google Apps Script</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">
+        <div class="icon">🌐</div>
+        <div class="label">Tünel</div>
+        <div class="name">ngrok</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">
+        <div class="icon">🐍</div>
+        <div class="label">Backend</div>
+        <div class="name">Flask API</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box">
+        <div class="icon">🧠</div>
+        <div class="label">Model</div>
+        <div class="name">Naive Bayes</div>
+      </div>
+    </div>
+    <div style="margin-top:32px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+      <div class="tech-item" style="min-width:200px;">
+        <span class="tech-icon">📡</span>
+        <div><div class="tech-label">Endpoint</div><div class="tech-name">/health · /classify · /classify/batch</div></div>
+      </div>
+      <div class="tech-item" style="min-width:200px;">
+        <span class="tech-icon">⏱️</span>
+        <div><div class="tech-label">Otomasyon</div><div class="tech-name">Her 5 dk'da otomatik tarama</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: Teknoloji -->
+  <div class="slide slide-4">
+    <div class="slide-number">03 / 06</div>
+    <h2 class="slide-title">Teknoloji <span class="accent">Yığını</span></h2>
+    <div class="slide-divider"></div>
+    <div class="tech-grid">
+      <div class="tech-item">
+        <span class="tech-icon">🧠</span>
+        <div><div class="tech-label">ML Modeli</div><div class="tech-name">scikit-learn · MultinomialNB · TF-IDF</div></div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">🐍</span>
+        <div><div class="tech-label">Backend</div><div class="tech-name">Python Flask + Flask-CORS</div></div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">📜</span>
+        <div><div class="tech-label">Gmail Entegrasyonu</div><div class="tech-name">Google Apps Script (JavaScript)</div></div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">🌐</span>
+        <div><div class="tech-label">Bağlantı</div><div class="tech-name">ngrok (geliştirme) · Render.com (üretim)</div></div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">📊</span>
+        <div><div class="tech-label">Veri</div><div class="tech-name">Kaggle Spam Dataset + Sentetik (4000 örnek)</div></div>
+      </div>
+      <div class="tech-item">
+        <span class="tech-icon">🔒</span>
+        <div><div class="tech-label">Güvenlik</div><div class="tech-name">Kural tabanlı hibrit phishing tespiti</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: İlerleme Durumu -->
+  <div class="slide slide-5">
+    <div class="slide-number">04 / 06</div>
+    <h2 class="slide-title">Geliştirme <span class="accent">İlerlemesi</span></h2>
+    <div class="slide-divider"></div>
+    <div class="status-list">
+      <div class="status-item">
+        <span class="status-icon">✅</span>
+        <div>
+          <div class="status-title">ML Modeli <span class="badge done">Tamamlandı</span></div>
+          <div class="status-desc">TF-IDF vektörizasyon (10K özellik, bigram) + MultinomialNB eğitimi. 5-Fold CV ile doğrulama. Model .pkl olarak kaydedildi.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <span class="status-icon">✅</span>
+        <div>
+          <div class="status-title">Flask REST API <span class="badge done">Tamamlandı</span></div>
+          <div class="status-desc">3 endpoint: /health, /classify, /classify/batch. Oltalama için hibrit kural+ML motoru. CORS desteği aktif.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <span class="status-icon">✅</span>
+        <div>
+          <div class="status-title">Gmail Eklentisi (GAS) <span class="badge done">Tamamlandı</span></div>
+          <div class="status-desc">Her 5 dk'da otomatik tarama, etiket yönetimi, oltalama uyarı e-postası. API erişilemezken kural tabanlı yedek devreye girer.</div>
+        </div>
+      </div>
+      <div class="status-item">
+        <span class="status-icon">🔄</span>
+        <div>
+          <div class="status-title">ngrok Entegrasyonu <span class="badge progress">Yapılandırıldı</span></div>
+          <div class="status-desc">API_URL Code.gs'te tanımlı. Geliştirme ortamında test edildi. Üretim için Render.com önerildi.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: Tamamlanma Oranı -->
+  <div class="slide slide-6">
+    <div class="slide-number">05 / 06</div>
+    <h2 class="slide-title">Bileşen <span class="accent">Tamamlanma</span> Oranları</h2>
+    <div class="slide-divider"></div>
+    <div class="progress-list">
+      <div class="progress-item">
+        <div class="progress-header"><span class="progress-label">🧠 Model Eğitimi (train_model.py)</span><span class="progress-pct">100%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header"><span class="progress-label">🐍 Flask Backend (app.py)</span><span class="progress-pct">100%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header"><span class="progress-label">📜 Gmail Plugin (Code.gs)</span><span class="progress-pct">100%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header"><span class="progress-label">🌐 Canlı Deployment (Render.com)</span><span class="progress-pct">20%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:20%;background:linear-gradient(90deg,#ffc800,#ff8c00)"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header"><span class="progress-label">📄 Akademik Rapor</span><span class="progress-pct">60%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:60%;background:linear-gradient(90deg,#3ecfcf,#6c63ff)"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: Sonuç -->
+  <div class="slide slide-7">
+    <div class="slide-number">06 / 06</div>
+    <h2 class="slide-title">Sonuç ve <span class="accent">Sonraki Adımlar</span></h2>
+    <div class="slide-divider"></div>
+    <div class="conclusion-grid">
+      <div class="conclusion-item">
+        <h4>✅ Tamamlananlar</h4>
+        <ul>
+          <li>4 kategorili ML modeli (NB + TF-IDF)</li>
+          <li>Hibrit phishing tespit motoru</li>
+          <li>Flask REST API (3 endpoint)</li>
+          <li>Toplu sınıflandırma desteği</li>
+          <li>Gmail etiketleme otomasyonu</li>
+          <li>Otomatik oltalama uyarı e-postası</li>
+        </ul>
+      </div>
+      <div class="conclusion-item">
+        <h4>🔜 Kalan Adımlar</h4>
+        <ul>
+          <li>Render.com üretim deployment</li>
+          <li>GAS'ta kalıcı API_URL güncelleme</li>
+          <li>Gerçek Kaggle verisi ile son test</li>
+          <li>Akademik rapor tamamlama</li>
+          <li>Son sunum hazırlığı</li>
+        </ul>
+      </div>
+      <div class="conclusion-item">
+        <h4>📈 Başarı Metrikleri</h4>
+        <ul>
+          <li>4000+ sentetik eğitim örneği</li>
+          <li>5-Fold Cross Validation uygulandı</li>
+          <li>Güven skoru her yanıtta döner</li>
+          <li>API erişilemezde yedek sistem var</li>
+        </ul>
+      </div>
+      <div class="conclusion-item">
+        <h4>🛠️ Teknik Özellikler</h4>
+        <ul>
+          <li>10.000 özellik (TF-IDF, bigram)</li>
+          <li>REST API — JSON in/out</li>
+          <li>CORS etkin (cross-origin)</li>
+          <li>5 dk'da bir otomatik tarama</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<nav>
+  <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">← Geri</button>
+  <div class="nav-dots" id="dots"></div>
+  <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">İleri →</button>
+</nav>
+
+<div class="hint">← → tuşları ile geçiş yapın</div>
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const dotsContainer = document.getElementById('dots');
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsContainer.appendChild(d);
+  });
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    slides[current].classList.add('prev');
+    setTimeout(() => slides[current < n ? current : n + (current !== n ? 1 : 0)].classList.remove('prev'), 600);
+    current = n;
+    slides[current].classList.remove('prev');
+    slides[current].classList.add('active');
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  }
+
+  function changeSlide(dir) {
+    const next = Math.max(0, Math.min(slides.length - 1, current + dir));
+    if (next !== current) {
+      slides[current].classList.remove('active');
+      slides[current].classList.add('prev');
+      const old = current;
+      current = next;
+      setTimeout(() => slides[old].classList.remove('prev'), 600);
+      slides[current].classList.remove('prev');
+      slides[current].classList.add('active');
+      document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') changeSlide(-1);
+  });
+</script>
+</body>
+</html>
