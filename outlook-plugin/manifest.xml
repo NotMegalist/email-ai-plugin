@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appshere/1.1" 
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+           xsi:type="MailApp">
+  <Id>5f8b9e6a-1234-4567-89ab-cdef01234567</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>AI Email Assistant</ProviderName>
+  <DefaultLocale>tr-TR</DefaultLocale>
+  <DisplayName DefaultValue="AI E-Posta Asistanı" />
+  <Description DefaultValue="Outlook için yapay zeka destekli otonom e-posta sınıflandırma eklentisi." />
+  <IconUrl DefaultValue="https://email-ai-plugin.onrender.com/static/icon.png" />
+  <SupportUrl DefaultValue="https://github.com/NotMegalist/email-ai-plugin" />
+  <Hosts>
+    <Host Name="Mailbox" />
+  </Hosts>
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" Version="1.5" />
+    </Sets>
+  </Requirements>
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://email-ai-plugin.onrender.com/static/taskpane.html" />
+        <RequestedHeight>250</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+  <Permissions>ReadWriteItem</Permissions>
+  <Rule xsi:type="RuleCollection" Mode="And">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read" />
+  </Rule>
+</OfficeApp>

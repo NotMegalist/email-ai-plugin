@@ -78,10 +78,17 @@ function classifyNewEmails() {
     for (const thread of unprocessed) {
       const messages = thread.getMessages();
       const latestMessage = messages[messages.length - 1];
+      const subject = latestMessage.getSubject() || "(Konu Yok)";
+      
+      // Kendi gönderdiğimiz güvenlik uyarı maillerini sınıflandırma dışı bırakıp atla
+      if (subject.indexOf("⚠️ OLTALAMA TEHDİDİ TESPİT EDİLDİ") !== -1) {
+        applyLabel(thread, "Normal");
+        continue;
+      }
       
       emailData.push({
         id: thread.getId(),
-        subject: latestMessage.getSubject() || "(Konu Yok)",
+        subject: subject,
         body: latestMessage.getPlainBody().substring(0, 2000), // İlk 2000 karakter
         sender: latestMessage.getFrom()
       });
@@ -220,6 +227,11 @@ function applyLabel(thread, category) {
     }
     // Yeni etiketi uygula
     thread.addLabel(label);
+    
+    // Oltalama veya Spam ise gelen kutusundan kaldır (arşivle)
+    if (category === "Oltalama" || category === "Spam") {
+      thread.moveToArchive();
+    }
   }
 }
 

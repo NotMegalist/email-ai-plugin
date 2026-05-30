@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2,
+  "name": "Yapay Zeka Destekli E-Posta Asistani - Thunderbird",
+  "version": "1.0",
+  "description": "Thunderbird icin yapay zeka destekli otonom e-posta siniflandirma eklentisi.",
+  "permissions": [
+    "messagesRead",
+    "messagesUpdate",
+    "accountsRead"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  }
+}
