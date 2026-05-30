@@ -18,7 +18,7 @@
 // ============================================================
 
 // Flask API URL - geliştirme için ngrok, üretim için sunucu URL'si
-const API_URL = "https://afterglow-thrash-borough.ngrok-free.dev";
+const API_URL = "https://email-ai-plugin.onrender.com";
 
 // Gmail etiket renkleri (Gmail API renk kodları)
 const LABEL_COLORS = {
