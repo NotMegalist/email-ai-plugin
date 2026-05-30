@@ -145,7 +145,8 @@ function classifyBatch(emails) {
     if (responseCode !== 200) {
       Logger.log("API Hatası: HTTP " + responseCode);
       Logger.log("Yanıt: " + response.getContentText().substring(0, 500));
-      return emails.map(() => ({ category: "Normal", confidence: 0.5 }));
+      // Sunucu hatasında doğrudan Normal dönmek yerine yerel kural motorunu çalıştır
+      return emails.map(email => ruleBased_classify(email.subject, email.body));
     }
     
     const data = JSON.parse(response.getContentText());
@@ -282,8 +283,9 @@ function ruleBased_classify(subject, body) {
   
   // Spam anahtar kelimeleri
   const spamKeywords = [
-    'unsubscribe', 'click here', 'free offer', 'make money fast',
-    'prize winner', 'limited time', 'act now', 'congratulations you won'
+    'unsubscribe', 'click here', 'free offer', 'make money',
+    'prize', 'reward', 'congratulations', 'won free',
+    'advertisements', 'gift card', 'winner', 'cash prize'
   ];
   const spamMatches = spamKeywords.filter(kw => combined.includes(kw)).length;
   if (spamMatches >= 2) return { category: "Spam", confidence: 0.75 };
