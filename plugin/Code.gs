@@ -57,9 +57,9 @@ function classifyNewEmails() {
     // Gmail etiketlerini hazırla
     ensureLabelsExist();
     
-    // AI tarafından henüz işlenmemiş e-postaları bul
+    // AI tarafından henüz işlenmemiş ve eklentinin kendi uyarı mesajı olmayan e-postaları bul
     const unprocessed = GmailApp.search(
-      'in:inbox -label:AI-Normal -label:AI-Önemli -label:AI-Spam -label:AI-Oltalama',
+      'in:inbox -label:AI-Normal -label:AI-Önemli -label:AI-Spam -label:AI-Oltalama -subject:"⚠️ OLTALAMA TEHDİDİ TESPİT EDİLDİ"',
       0,
       MAX_EMAILS_PER_RUN
     );
@@ -79,12 +79,6 @@ function classifyNewEmails() {
       const messages = thread.getMessages();
       const latestMessage = messages[messages.length - 1];
       const subject = latestMessage.getSubject() || "(Konu Yok)";
-      
-      // Kendi gönderdiğimiz güvenlik uyarı maillerini sınıflandırma dışı bırakıp atla
-      if (subject.indexOf("⚠️ OLTALAMA TEHDİDİ TESPİT EDİLDİ") !== -1) {
-        applyLabel(thread, "Normal");
-        continue;
-      }
       
       emailData.push({
         id: thread.getId(),
