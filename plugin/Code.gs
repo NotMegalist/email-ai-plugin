@@ -145,8 +145,14 @@ function classifyBatch(emails) {
     if (responseCode !== 200) {
       Logger.log("API Hatası: HTTP " + responseCode);
       Logger.log("Yanıt: " + response.getContentText().substring(0, 500));
-      // Sunucu hatasında doğrudan Normal dönmek yerine yerel kural motorunu çalıştır
-      return emails.map(email => ruleBased_classify(email.subject, email.body));
+      // Sunucu hatasında yerel kural motorunu veya güvenli whitelist kontrolünü çalıştır
+      return emails.map(email => {
+        const senderLower = (email.sender || "").toLowerCase();
+        if (senderLower.includes("@google.com")) {
+          return { category: "Normal", confidence: 1.0 };
+        }
+        return ruleBased_classify(email.subject, email.body);
+      });
     }
     
     const data = JSON.parse(response.getContentText());
@@ -154,8 +160,14 @@ function classifyBatch(emails) {
     
   } catch (error) {
     Logger.log("API bağlantı hatası: " + error.toString());
-    // API erişilemezse kural tabanlı sınıflandırma yap
-    return emails.map(email => ruleBased_classify(email.subject, email.body));
+    // API erişilemezse kural tabanlı sınıflandırma veya güvenli whitelist kontrolü yap
+    return emails.map(email => {
+      const senderLower = (email.sender || "").toLowerCase();
+      if (senderLower.includes("@google.com")) {
+        return { category: "Normal", confidence: 1.0 };
+      }
+      return ruleBased_classify(email.subject, email.body);
+    });
   }
 }
 

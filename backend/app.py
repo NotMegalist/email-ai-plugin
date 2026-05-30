@@ -105,9 +105,30 @@ def classify_email():
 
         subject = data.get('subject', '')
         body = data.get('body', '')
+        sender = data.get('sender', '')
 
         if not subject and not body:
             return jsonify({'error': 'Konu veya gövde metni gereklidir'}), 400
+
+        # Güvenli Gönderenler (Whitelist) Kontrolü
+        # Resmi Google e-postalarının (güvenlik uyarıları, hesap ayarları vb.) 
+        # oltalama olarak işaretlenmesini engellemek için doğrudan Normal yapıyoruz.
+        sender_clean = sender.lower() if sender else ""
+        if "@google.com" in sender_clean or "accounts.google.com" in sender_clean:
+            return jsonify({
+                'category': 'Normal',
+                'confidence': 1.0,
+                'method': 'whitelist',
+                'details': {
+                    'subject_preview': subject[:100],
+                    'all_probabilities': {
+                        'Normal': 1.0,
+                        'Önemli': 0.0,
+                        'Spam': 0.0,
+                        'Oltalama': 0.0
+                    }
+                }
+            })
 
         # Model yüklü değilse kural tabanlı sınıflandırma kullan
         if model is None or vectorizer is None:
@@ -118,6 +139,7 @@ def classify_email():
                 'method': 'rule_based',
                 'warning': 'ML modeli yüklü değil, kural tabanlı sınıflandırma kullanıldı'
             })
+
 
         # Metni ön işle
         combined_text = preprocess_text(f"{subject} {body}")
@@ -191,8 +213,14 @@ def classify_batch():
             email_id = email.get('id', '')
             subject = email.get('subject', '')
             body = email.get('body', '')
+            sender = email.get('sender', '')
 
-            if model is not None and vectorizer is not None:
+            # Whitelist check
+            sender_clean = sender.lower() if sender else ""
+            if "@google.com" in sender_clean or "accounts.google.com" in sender_clean:
+                category = 'Normal'
+                confidence = 1.0
+            elif model is not None and vectorizer is not None:
                 combined = preprocess_text(f"{subject} {body}")
                 features = vectorizer.transform([combined])
                 prediction = model.predict(features)[0]
@@ -206,6 +234,7 @@ def classify_batch():
                     confidence = max(confidence, 0.75)
             else:
                 category, confidence = rule_based_classify(subject, body)
+
 
             results.append({
                 'id': email_id,
