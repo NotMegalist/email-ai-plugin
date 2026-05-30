@@ -421,3 +421,73 @@ function sendTestEmails() {
   Logger.log("=== Tüm test e-postaları başarıyla gönderildi! Lütfen gelen kutunuza düşmelerini bekleyin (yaklaşık 10-15 saniye) ===");
 }
 
+// ============================================================
+// GÖRSEL EKLENTİ (SIDEBAR / CARD SERVICE) ARAYÜZÜ
+// ============================================================
+
+/**
+ * Eklentinin ana sayfa (homepage) kartını oluşturur.
+ */
+function buildHomepage(e) {
+  const card = CardService.newCardBuilder();
+  card.setHeader(CardService.newCardHeader().setTitle("Yapay Zeka E-Posta Asistanı"));
+  
+  const section = CardService.newCardSection()
+    .addWidget(CardService.newTextParagraph().setText("Hoş geldiniz! Lütfen analiz etmek istediğiniz bir e-postayı açın."));
+    
+  card.addSection(section);
+  return card.build();
+}
+
+/**
+ * Bir e-posta açıldığında çalışan görsel kart arayüzünü oluşturur.
+ */
+function onGmailMessageOpen(e) {
+  const messageId = e.gmail.messageId;
+  const accessToken = e.gmail.accessToken;
+  GmailApp.setCurrentMessageAccessToken(accessToken);
+  
+  const message = GmailApp.getMessageById(messageId);
+  const subject = message.getSubject() || "(Konu Yok)";
+  const body = message.getPlainBody().substring(0, 1000);
+  const sender = message.getFrom();
+  
+  // Yapay Zeka sorgusu yap (API'ye veya yerel kural motoruna sorar)
+  const result = classifySingleEmail(subject, body, sender);
+  
+  const card = CardService.newCardBuilder();
+  card.setHeader(CardService.newCardHeader()
+    .setTitle("E-Posta AI Analizi")
+    .setSubtitle(subject.substring(0, 40) + "..."));
+    
+  const section = CardService.newCardSection();
+  
+  // Kategoriye göre renk ve simge belirle
+  let categoryColor = "#434343"; // Normal - Gri
+  let iconText = "✉️";
+  if (result.category === "Önemli") {
+    categoryColor = "#4285f4"; // Mavi
+    iconText = "⭐";
+  } else if (result.category === "Spam") {
+    categoryColor = "#ea4335"; // Kırmızı
+    iconText = "🚫";
+  } else if (result.category === "Oltalama") {
+    categoryColor = "#c62828"; // Koyu Kırmızı
+    iconText = "⚠️";
+  }
+  
+  // Detay widget'ları
+  section.addWidget(CardService.newKeyValue()
+    .setTopLabel("Tespit Edilen Kategori")
+    .setContent(`<b><font color="${categoryColor}">${iconText} ${result.category}</font></b>`)
+    .setBottomLabel(`Güven Skoru: %${(result.confidence * 100).toFixed(1)}`));
+    
+  section.addWidget(CardService.newKeyValue()
+    .setTopLabel("Gönderici")
+    .setContent(sender));
+    
+  card.addSection(section);
+  return card.build();
+}
+
+
