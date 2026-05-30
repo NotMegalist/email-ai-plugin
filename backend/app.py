@@ -246,7 +246,10 @@ def rule_based_classify(subject: str, body: str) -> tuple:
 
     return 'Normal', 0.65
 
+# Modeli modül yüklendiğinde yükle (Gunicorn/Render altında çalışabilmesi için)
+load_model()
+
 if __name__ == '__main__':
-    load_model()
     # Not: Production'da ngrok veya Render.com kullanılacak
     app.run(host='0.0.0.0', port=5000, debug=True)
+
