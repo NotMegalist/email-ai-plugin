@@ -377,3 +377,47 @@ function testApiConnection() {
     Logger.log("ngrok çalışıyor mu? API_URL doğru mu?");
   }
 }
+
+/**
+ * Kolay test için gelen kutunuza 4 farklı kategoride test e-postaları gönderir.
+ * Bu fonksiyonu Apps Script editöründe seçip çalıştırabilirsiniz.
+ */
+function sendTestEmails() {
+  const myEmail = Session.getActiveUser().getEmail();
+  Logger.log("Test e-postaları gönderiliyor: " + myEmail);
+  
+  // 1. SPAM E-Posta
+  GmailApp.sendEmail(
+    myEmail, 
+    "!!! URGENT !!! Claim Your Free $1000 Gift Card Now!", 
+    "Congratulations! You have been selected as the lucky winner of a free $1000 Walmart Gift Card. Click here to claim your reward immediately. Unsubscribe if you do not wish to receive more promotional offers from us."
+  );
+  Logger.log("✓ Spam test e-postası gönderildi.");
+  
+  // 2. OLTALAMA (Phishing) E-Posta
+  GmailApp.sendEmail(
+    myEmail, 
+    "[Security Alert] Confirm your password and verify your bank account details", 
+    "Dear Customer,\n\nWe detected suspicious activity on your online banking account. For your safety, your account has been temporarily suspended. Please click the link below to confirm your password and verify your identity immediately:\nhttp://secure-banking-alert-identity.com/login\n\nUrgent action is required within 24 hours to prevent permanent account closure."
+  );
+  Logger.log("✓ Oltalama test e-postası gönderildi.");
+  
+  // 3. ÖNEMLİ E-Posta
+  GmailApp.sendEmail(
+    myEmail, 
+    "Proje Final Raporu Teslimi ve Fatura Ödeme Planı", 
+    "Selamlar,\n\nE-posta asistanı projesi için hazırladığımız final raporunun son teslim tarihi bu Cuma günüdür. Ayrıca sunucu masrafları için hazırlanan fatura ekte yer almaktadır. Ödeme işlemlerini en kısa sürede tamamlamamız gerekiyor. Yarın sabah saat 10:00'da son durum değerlendirmesi için bir online toplantı yapacağız.\n\nİyi çalışmalar."
+  );
+  Logger.log("✓ Önemli test e-postası gönderildi.");
+  
+  // 4. NORMAL E-Posta
+  GmailApp.sendEmail(
+    myEmail, 
+    "Hafta sonu piknik ve kahvaltı planı", 
+    "Selam dostum,\n\nBu hafta sonu hava çok güzel olacakmış. Cumartesi sabahı Belgrad Ormanı'nda piknik yapıp kahvaltı etmeyi düşünüyoruz. Diğer arkadaşlar da gelecek. Sen de katılmak ister misin? Yanıtına göre hazırlık yapacağız, haber verirsin."
+  );
+  Logger.log("✓ Normal test e-postası gönderildi.");
+  
+  Logger.log("=== Tüm test e-postaları başarıyla gönderildi! Lütfen gelen kutunuza düşmelerini bekleyin (yaklaşık 10-15 saniye) ===");
+}
+
