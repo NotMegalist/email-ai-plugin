@@ -176,6 +176,32 @@ def classify_email():
         # TF-IDF vektörü oluştur
         features = vectorizer.transform([combined_text])
 
+        # Türkçe veya çok kısa e-postalar için ML modelinin yetersiz kelime eşleşmesi durumunu kontrol et
+        # Eğer eşleşen kelime sayısı çok az ise (features.nnz < 4), kural tabanlı sınıflandırmaya güvenli geçiş yap
+        if features.nnz < 4:
+            category, confidence = rule_based_classify(subject, body)
+            logger.info(f"Yetersiz kelime eşleşmesi ({features.nnz} kelime), kural tabanlı sınıflandırma kullanıldı: {subject[:50]} -> {category}")
+            
+            # Kategori kodları eşleştirmesi
+            code_map = {'Normal': 0, 'Önemli': 1, 'Spam': 2, 'Oltalama': 3}
+            category_code = code_map.get(category, 0)
+            
+            return jsonify({
+                'category': category,
+                'confidence': round(confidence, 4),
+                'category_code': category_code,
+                'method': 'rule_based_fallback',
+                'details': {
+                    'subject_preview': subject[:100],
+                    'all_probabilities': {
+                        'Normal': 1.0 if category == 'Normal' else 0.0,
+                        'Önemli': 1.0 if category == 'Önemli' else 0.0,
+                        'Spam': 1.0 if category == 'Spam' else 0.0,
+                        'Oltalama': 1.0 if category == 'Oltalama' else 0.0
+                    }
+                }
+            })
+
         # Model tahmini
         prediction = model.predict(features)[0]
         probabilities = model.predict_proba(features)[0]
@@ -263,19 +289,24 @@ def classify_batch():
             elif model is not None and vectorizer is not None:
                 combined = preprocess_text(f"{subject} {body}")
                 features = vectorizer.transform([combined])
-                prediction = model.predict(features)[0]
-                probabilities = model.predict_proba(features)[0]
-                confidence = float(max(probabilities))
-                category_map = {0: 'Normal', 1: 'Önemli', 2: 'Spam', 3: 'Oltalama'}
-                category = category_map.get(int(prediction), 'Normal')
+                
+                # Türkçe veya çok kısa e-postalar için ML modeli yetersiz kalırsa kural tabanlı sınıflandırmaya geç
+                if features.nnz < 4:
+                    category, confidence = rule_based_classify(subject, body)
+                else:
+                    prediction = model.predict(features)[0]
+                    probabilities = model.predict_proba(features)[0]
+                    confidence = float(max(probabilities))
+                    category_map = {0: 'Normal', 1: 'Önemli', 2: 'Spam', 3: 'Oltalama'}
+                    category = category_map.get(int(prediction), 'Normal')
 
-                if phishing_rule_check(subject, body) and category in ['Normal', 'Spam']:
-                    category = 'Oltalama'
-                    confidence = max(confidence, 0.75)
+                    if phishing_rule_check(subject, body) and category in ['Normal', 'Spam']:
+                        category = 'Oltalama'
+                        confidence = max(confidence, 0.75)
 
-                if category == 'Oltalama' and is_legitimate_receipt(subject, body):
-                    category = 'Normal'
-                    confidence = max(confidence, 0.70)
+                    if category == 'Oltalama' and is_legitimate_receipt(subject, body):
+                        category = 'Normal'
+                        confidence = max(confidence, 0.70)
 
             else:
                 category, confidence = rule_based_classify(subject, body)
