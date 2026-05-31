@@ -291,13 +291,16 @@ function ruleBased_classify(subject, body) {
   }
   
   // Kelime grupları
+  // Hediye kartı ibarelerini temizle (yanlış oltalama eşleşmesini önler)
+  const combinedPhish = combined.split("gift card").join("").split("hediye karti").join("").split("hediye kart").join("");
+
   const targets = ['sifre', 'password', 'hesap', 'account', 'banka', 'bank', 'kart', 'card', 'kimlik', 'identity', 'credential', 'giris', 'login', 'iade', 'refund', 'vergi', 'odemesi', 'payment'];
   const actions = ['dogrula', 'verify', 'guncelle', 'update', 'aski', 'suspend', 'bloke', 'block', 'guvenlik', 'security', 'alert', 'uyari', 'tikla', 'click', 'link', 'url', 'askiya'];
-  const phishingPatterns = ['click here', 'hemen tiklayin', 'confirm your', 'verify your', 'security alert', 'guvenlik uyarisi', 'suspicious activity', 'supheli etkinlik'];
+  const phishingPatterns = ['confirm your', 'verify your', 'security alert', 'guvenlik uyarisi', 'suspicious activity', 'supheli etkinlik'];
   
-  const targetMatches = targets.filter(t => combined.indexOf(t) !== -1).length;
-  const actionMatches = actions.filter(a => combined.indexOf(a) !== -1).length;
-  const patternMatches = phishingPatterns.filter(pat => combined.indexOf(pat) !== -1).length;
+  const targetMatches = targets.filter(t => combinedPhish.indexOf(t) !== -1).length;
+  const actionMatches = actions.filter(a => combinedPhish.indexOf(a) !== -1).length;
+  const patternMatches = phishingPatterns.filter(pat => combinedPhish.indexOf(pat) !== -1).length;
   
   const spamKeywords = [
     'unsubscribe', 'click here', 'free offer', 'make money',
@@ -309,7 +312,7 @@ function ruleBased_classify(subject, body) {
   
   const importantKeywords = [
     'urgent', 'meeting', 'deadline', 'invoice', 'payment', 'acil', 'toplanti', 'son tarih', 'fatura', 'odeme',
-    'sinav', 'odev', 'proje', 'rapor', 'kurul', 'karar', 'mufredat', 'ders', 'program', 'schedule', 'announcement', 'duyuru'
+    'sinav', 'odev', 'rapor', 'kurul', 'karar', 'mufredat', 'program', 'schedule', 'announcement', 'duyuru'
   ];
   const importantMatches = importantKeywords.filter(kw => combined.indexOf(kw) !== -1).length;
   

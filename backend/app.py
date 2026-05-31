@@ -70,22 +70,25 @@ def phishing_rule_check(subject: str, body: str) -> bool:
     for tr, en in tr_map.items():
         combined = combined.replace(tr, en)
         
+    # Hediye kartı maillerinin "kart/card" kuralını tetikleyip oltalama çıkmasını engellemek için bu ibareleri temizle
+    combined_phish = combined.replace("gift card", "").replace("hediye karti", "").replace("hediye kart", "")
+        
     # Güvenli hedefler ve eylemler (Kombinasyon kontrolü)
     targets = ['sifre', 'password', 'hesap', 'account', 'banka', 'bank', 'kart', 'card', 'kimlik', 'identity', 'credential', 'giris', 'login', 'iade', 'refund', 'vergi', 'odemesi', 'payment']
     actions = ['dogrula', 'verify', 'guncelle', 'update', 'aski', 'suspend', 'bloke', 'block', 'guvenlik', 'security', 'alert', 'uyari', 'tikla', 'click', 'link', 'url', 'askiya']
     
-    has_target = any(t in combined for t in targets)
-    has_action = any(a in combined for a in actions)
+    has_target = any(t in combined_phish for t in targets)
+    has_action = any(a in combined_phish for a in actions)
     
     if has_target and has_action:
         return True
         
     # Klasik kalıplar
     phishing_patterns = [
-        'click here', 'hemen tiklayin', 'confirm your', 'verify your', 
+        'confirm your', 'verify your', 
         'security alert', 'guvenlik uyarisi', 'suspicious activity', 'supheli etkinlik'
     ]
-    return any(pat in combined for pat in phishing_patterns)
+    return any(pat in combined_phish for pat in phishing_patterns)
 
 def is_legitimate_receipt(subject: str, body: str) -> bool:
     """
@@ -261,7 +264,8 @@ def classify_email():
             ]
             spam_markers = [
                 'discount', '% off', 'special deal', 'webinar', 'income', 'watches', 'winner', 'prize', 'shop', 'webinara',
-                'indirim', 'fırsat', 'kampanya', 'kazan', 'hediye', 'ucuz', 'satın al', 'bedava'
+                'indirim', 'fırsat', 'kampanya', 'kazan', 'hediye', 'ucuz', 'satın al', 'bedava',
+                'congratulations', 'free', 'gift card', 'claim', 'offer', 'reward'
             ]
             # Alt kelime (substring) eşleşmelerini önlemek için tam kelime kontrolü yapıyoruz (Örn: "offered" -> "off" eşleşmesini engeller)
             words = set(preprocess_text(combined_lower).split())
@@ -397,7 +401,8 @@ def classify_batch():
                         ]
                         spam_markers = [
                             'discount', '% off', 'special deal', 'webinar', 'income', 'watches', 'winner', 'prize', 'shop', 'webinara',
-                            'indirim', 'fırsat', 'kampanya', 'kazan', 'hediye', 'ucuz', 'satın al', 'bedava'
+                            'indirim', 'fırsat', 'kampanya', 'kazan', 'hediye', 'ucuz', 'satın al', 'bedava',
+                            'congratulations', 'free', 'gift card', 'claim', 'offer', 'reward'
                         ]
                         words = set(preprocess_text(combined_lower).split())
                         has_phishing_marker = False
@@ -457,14 +462,17 @@ def rule_based_classify(subject: str, body: str) -> tuple:
     for tr, en in tr_map.items():
         combined = combined.replace(tr, en)
 
+    # Hediye kartı ibarelerini temizle (yanlış oltalama eşleşmesini önler)
+    combined_phish = combined.replace("gift card", "").replace("hediye karti", "").replace("hediye kart", "")
+
     # Kelime grupları
     targets = ['sifre', 'password', 'hesap', 'account', 'banka', 'bank', 'kart', 'card', 'kimlik', 'identity', 'credential', 'giris', 'login', 'iade', 'refund', 'vergi', 'odemesi', 'payment']
     actions = ['dogrula', 'verify', 'guncelle', 'update', 'aski', 'suspend', 'bloke', 'block', 'guvenlik', 'security', 'alert', 'uyari', 'tikla', 'click', 'link', 'url', 'askiya']
-    phishing_patterns = ['click here', 'hemen tiklayin', 'confirm your', 'verify your', 'security alert', 'guvenlik uyarisi', 'suspicious activity', 'supheli etkinlik']
+    phishing_patterns = ['confirm your', 'verify your', 'security alert', 'guvenlik uyarisi', 'suspicious activity', 'supheli etkinlik']
     
-    target_matches = sum(1 for t in targets if t in combined)
-    action_matches = sum(1 for a in actions if a in combined)
-    pattern_matches = sum(1 for pat in phishing_patterns if pat in combined)
+    target_matches = sum(1 for t in targets if t in combined_phish)
+    action_matches = sum(1 for a in actions if a in combined_phish)
+    pattern_matches = sum(1 for pat in phishing_patterns if pat in combined_phish)
 
     spam_keywords = ['unsubscribe', 'click here', 'free offer', 'make money',
                      'prize', 'reward', 'congratulations', 'won free',
@@ -473,7 +481,7 @@ def rule_based_classify(subject: str, body: str) -> tuple:
     spam_matches = sum(1 for kw in spam_keywords if kw in combined)
 
     important_keywords = ['urgent', 'meeting', 'deadline', 'invoice', 'payment', 'acil', 'toplanti', 'son tarih', 'fatura', 'odeme',
-                          'sinav', 'odev', 'proje', 'rapor', 'kurul', 'karar', 'mufredat', 'ders', 'program', 'schedule', 'announcement', 'duyuru']
+                          'sinav', 'odev', 'rapor', 'kurul', 'karar', 'mufredat', 'program', 'schedule', 'announcement', 'duyuru']
     important_matches = sum(1 for kw in important_keywords if kw in combined)
 
     # Organik görünmesi için metin uzunluğuna göre küçük bir dalgalanma (0.01 - 0.04) ekleyelim
