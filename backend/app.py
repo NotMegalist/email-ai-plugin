@@ -236,13 +236,21 @@ def classify_email():
             confidence = max(confidence, 0.70)
             logger.info(f"Fatura doğrulaması ile Oltalama -> Normal düşürüldü: {subject[:50]}")
 
+        # Oltalama veya Spam için güven eşiği kontrolü (Güven skoru < 0.75 ise Normal'e çek)
+        if category in ['Oltalama', 'Spam'] and confidence < 0.75:
+            logger.info(f"Düşük güvenli {category} (%{confidence*100:.1f}) -> Normal yapıldı: {subject[:50]}")
+            category = 'Normal'
+
+        # Kategori kodları eşleştirmesi
+        code_map = {'Normal': 0, 'Önemli': 1, 'Spam': 2, 'Oltalama': 3}
+        category_code = code_map.get(category, 0)
 
         logger.info(f"Sınıflandırıldı: '{subject[:50]}' -> {category} ({confidence:.2f})")
 
         return jsonify({
             'category': category,
             'confidence': round(confidence, 4),
-            'category_code': int(prediction),
+            'category_code': category_code,
             'details': {
                 'subject_preview': subject[:100],
                 'all_probabilities': {
@@ -315,6 +323,10 @@ def classify_batch():
                     if category == 'Oltalama' and is_legitimate_receipt(subject, body):
                         category = 'Normal'
                         confidence = max(confidence, 0.70)
+
+                    # Düşük güvenli Oltalama/Spam tahminlerini Normal'e düşür (Yanlış alarmları engellemek için)
+                    if category in ['Oltalama', 'Spam'] and confidence < 0.75:
+                        category = 'Normal'
 
             else:
                 category, confidence = rule_based_classify(subject, body)
