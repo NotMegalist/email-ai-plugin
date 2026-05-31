@@ -20,13 +20,7 @@
 // Flask API URL - geliştirme için ngrok, üretim için sunucu URL'si
 const API_URL = "https://email-ai-plugin.onrender.com";
 
-// Gmail etiket renkleri (Gmail API renk kodları)
-const LABEL_COLORS = {
-  "Normal":   { textColor: "#434343", backgroundColor: "#efefef" },
-  "Önemli":   { textColor: "#ffffff", backgroundColor: "#4285f4" },
-  "Spam":     { textColor: "#ffffff", backgroundColor: "#ea4335" },
-  "Oltalama": { textColor: "#ffffff", backgroundColor: "#c62828" }
-};
+
 
 // Etiket isimleri
 const LABEL_NAMES = {
@@ -131,11 +125,7 @@ function classifyBatch(emails) {
     method: "post",
     contentType: "application/json",
     payload: payload,
-    headers: {
-      "ngrok-skip-browser-warning": "true"
-    },
-    muteHttpExceptions: true,
-    timeout: 30
+    muteHttpExceptions: true
   };
   
   try {
@@ -146,10 +136,16 @@ function classifyBatch(emails) {
       Logger.log("API Hatası: HTTP " + responseCode);
       Logger.log("Yanıt: " + response.getContentText().substring(0, 500));
       // Sunucu hatasında yerel kural motorunu veya güvenli whitelist kontrolünü çalıştır
-      const trusted = ["@google.com", "accounts.google.com"];
+      const trusted = [
+        "@google.com", "@accounts.google.com",
+        "@proton.me", ".proton.me", "@protonmail.com", "@protonmail.ch",
+        "@quora.com", "@github.com", "@linkedin.com", "@microsoft.com",
+        "@discord.com", "@discordapp.com", "@spotify.com", "@netflix.com",
+        "@zoom.us", "@steamcommunity.com", "@steampowered.com"
+      ];
       return emails.map(email => {
         const senderLower = (email.sender || "").toLowerCase();
-        if (trusted.some(domain => senderLower.indexOf(domain) !== -1)) {
+        if (trusted.some(domain => senderLower.endsWith(domain))) {
           return { category: "Normal", confidence: 1.0 };
         }
         return ruleBased_classify(email.subject, email.body);
@@ -162,10 +158,16 @@ function classifyBatch(emails) {
   } catch (error) {
     Logger.log("API bağlantı hatası: " + error.toString());
     // API erişilemezse kural tabanlı sınıflandırma veya güvenli whitelist kontrolü yap
-    const trusted = ["@google.com", "accounts.google.com"];
+    const trusted = [
+      "@google.com", "@accounts.google.com",
+      "@proton.me", ".proton.me", "@protonmail.com", "@protonmail.ch",
+      "@quora.com", "@github.com", "@linkedin.com", "@microsoft.com",
+      "@discord.com", "@discordapp.com", "@spotify.com", "@netflix.com",
+      "@zoom.us", "@steamcommunity.com", "@steampowered.com"
+    ];
     return emails.map(email => {
       const senderLower = (email.sender || "").toLowerCase();
-      if (trusted.some(domain => senderLower.indexOf(domain) !== -1)) {
+      if (trusted.some(domain => senderLower.endsWith(domain))) {
         return { category: "Normal", confidence: 1.0 };
       }
       return ruleBased_classify(email.subject, email.body);
@@ -183,11 +185,7 @@ function classifySingleEmail(subject, body, sender) {
     method: "post",
     contentType: "application/json",
     payload: payload,
-    headers: {
-      "ngrok-skip-browser-warning": "true"
-    },
-    muteHttpExceptions: true,
-    timeout: 15
+    muteHttpExceptions: true
   };
   
   try {
@@ -284,35 +282,50 @@ Bu mesaj otomatik olarak AI E-Posta Asistanı tarafından oluşturulmuştur.
  * API erişilemez olduğunda kullanılacak basit kural tabanlı sınıflandırıcı
  */
 function ruleBased_classify(subject, body) {
-  const combined = (subject + " " + body).toLowerCase();
+  let combined = (subject + " " + body).toLowerCase();
   
-  // Oltalama anahtar kelimeleri
-  const phishingKeywords = [
-    'verify your account', 'account suspended', 'click here immediately',
-    'confirm your password', 'security alert', 'suspicious activity',
-    'hesabınız askıya', 'şifrenizi doğrulayın', 'güvenlik uyarısı'
+  // Normalize Turkish characters
+  const trMap = {'ı': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c'};
+  for (let tr in trMap) {
+    combined = combined.replace(new RegExp(tr, 'g'), trMap[tr]);
+  }
+  
+  // Phishing keywords combinations
+  const targets = ['sifre', 'password', 'hesap', 'account', 'banka', 'bank', 'kart', 'card', 'kimlik', 'identity', 'credential', 'giris', 'login', 'iade', 'refund', 'vergi', 'odemesi', 'payment'];
+  const actions = ['dogrula', 'verify', 'guncelle', 'update', 'aski', 'suspend', 'bloke', 'block', 'guvenlik', 'security', 'alert', 'uyari', 'tikla', 'click', 'link', 'url', 'askiya'];
+  
+  const hasTarget = targets.some(t => combined.indexOf(t) !== -1);
+  const hasAction = actions.some(a => combined.indexOf(a) !== -1);
+  
+  const phishingPatterns = [
+    'click here', 'hemen tiklayin', 'confirm your', 'verify your', 
+    'security alert', 'guvenlik uyarisi', 'suspicious activity', 'supheli etkinlik'
   ];
-  const phishingMatches = phishingKeywords.filter(kw => combined.includes(kw)).length;
-  if (phishingMatches >= 2) return { category: "Oltalama", confidence: 0.80 };
+  const hasPattern = phishingPatterns.some(pat => combined.indexOf(pat) !== -1);
   
-  // Spam anahtar kelimeleri
+  if ((hasTarget && hasAction) || hasPattern) {
+    return { category: "Oltalama", confidence: 0.80 };
+  }
+  
+  // Spam keywords
   const spamKeywords = [
     'unsubscribe', 'click here', 'free offer', 'make money',
     'prize', 'reward', 'congratulations', 'won free',
-    'advertisements', 'gift card', 'winner', 'cash prize'
+    'advertisements', 'gift card', 'winner', 'cash prize',
+    'abonelikten cik', 'ucretsiz teklif', 'para kazan', 'kazandiniz', 'kampanya', 'indirim'
   ];
-  const spamMatches = spamKeywords.filter(kw => combined.includes(kw)).length;
+  const spamMatches = spamKeywords.filter(kw => combined.indexOf(kw) !== -1).length;
   if (spamMatches >= 2) return { category: "Spam", confidence: 0.75 };
   
-  // Önemli e-posta anahtar kelimeleri
+  // Important keywords
   const importantKeywords = [
-    'urgent', 'deadline', 'invoice', 'payment', 'meeting tomorrow',
-    'action required', 'acil', 'toplantı', 'son tarih', 'fatura'
+    'urgent', 'meeting', 'deadline', 'invoice', 'payment', 'acil', 'toplanti', 'son tarih', 'fatura', 'odeme',
+    'sinav', 'odev', 'proje', 'rapor', 'kurul', 'karar', 'mufredat', 'ders', 'program', 'schedule', 'announcement', 'duyuru'
   ];
-  const importantMatches = importantKeywords.filter(kw => combined.includes(kw)).length;
-  if (importantMatches >= 1) return { category: "Önemli", confidence: 0.65 };
+  const importantMatches = importantKeywords.filter(kw => combined.indexOf(kw) !== -1).length;
+  if (importantMatches >= 1) return { category: "Önemli", confidence: 0.70 };
   
-  return { category: "Normal", confidence: 0.60 };
+  return { category: "Normal", confidence: 0.65 };
 }
 
 // ============================================================
@@ -367,11 +380,7 @@ function testApiConnection() {
   
   try {
     const response = UrlFetchApp.fetch(API_URL + "/health", {
-      headers: {
-        "ngrok-skip-browser-warning": "true"
-      },
-      muteHttpExceptions: true,
-      timeout: 10
+      muteHttpExceptions: true
     });
     
     const code = response.getResponseCode();
@@ -393,46 +402,93 @@ function testApiConnection() {
 }
 
 /**
- * Kolay test için gelen kutunuza 4 farklı kategoride test e-postaları gönderir.
- * Bu fonksiyonu Apps Script editöründe seçip çalıştırabilirsiniz.
+ * Kolay test için gelen kutunuza 16 farklı kategoride test e-postaları gönderir.
  */
 function sendTestEmails() {
   const myEmail = Session.getActiveUser().getEmail();
   Logger.log("Test e-postaları gönderiliyor: " + myEmail);
   
-  // 1. SPAM E-Posta
-  GmailApp.sendEmail(
-    myEmail, 
-    "!!! URGENT !!! Claim Your Free $1000 Gift Card Now!", 
-    "Congratulations! You have been selected as the lucky winner of a free $1000 Walmart Gift Card. Click here to claim your reward immediately. Unsubscribe if you do not wish to receive more promotional offers from us."
-  );
-  Logger.log("✓ Spam test e-postası gönderildi.");
+  const testEmails = [
+    // === 1. NORMAL ===
+    {
+      subject: "Yarın akşamki halı saha maçı kadrosu",
+      body: "Selam arkadaşlar, yarın akşam saat 20:00'da halı saha maçı yapıyoruz. Eksikler var, gelmek isteyenler gruba yazsın."
+    },
+    {
+      subject: "Hafta sonu piknik ve kahvaltı planı",
+      body: "Selam dostum, bu hafta sonu Belgrad Ormanı'nda piknik ve kahvaltı yapıyoruz. Cumartesi sabahı saat 9:00'da buluşacağız. Katılabilecek misin?"
+    },
+    {
+      subject: "Yeni kütüphane kitapları listesi",
+      body: "Merhaba, kütüphanemize bu hafta yeni romanlar ve araştırma kitapları eklendi. Listeyi web sitemizden inceleyebilirsiniz."
+    },
+    {
+      subject: "Akşam yemeği için rezervasyon yapıldı",
+      body: "Selam, cuma akşamı için restoranda yerimizi ayırttım. Saat 19:30'da orada buluşuruz, gecikmeyin."
+    },
+
+    // === 2. ÖNEMLİ ===
+    {
+      subject: "Proje Final Raporu Teslimi ve Fatura Ödeme Planı",
+      body: "Selamlar,\n\nE-posta asistanı projesi için hazırladığımız final raporunun son teslim tarihi bu Cuma günüdür. Ayrıca sunucu masrafları için hazırlanan fatura ekte yer almaktadır. Ödeme işlemlerini en kısa sürede tamamlamamız gerekiyor. Yarın sabah saat 10:00'da son durum değerlendirmesi için bir online toplantı yapacağız.\n\nİyi çalışmalar."
+    },
+    {
+      subject: "Haftalık Proje Değerlendirme Toplantısı",
+      body: "Merhaba arkadaşlar, yarın sabah saat 10:00'da haftalık ilerleme ve durum değerlendirme toplantısı yapılacaktır. Herkesin hazırladığı son slaytları yanında getirmesini rica ederim. Katılım zorunludur."
+    },
+    {
+      subject: "Bölüm Kurulu Kararları ve Yeni Müfredat",
+      body: "Sayın hocalarım, bu haftaki kurulda alınan kararlar ve önümüzdeki dönem uygulanacak olan ders programı ektedir. Lütfen değişiklikleri inceleyip geri bildirimlerinizi iletiniz."
+    },
+    {
+      subject: "Akademik Takvim Güncellemesi ve Sınav Tarihleri",
+      body: "Değerli öğrenciler, bahar dönemi bütünleme ve mazeret sınavlarının güncellenmiş takvimi bölüm web sayfasında ilan edilmiştir. Sınav çakışması olanların en geç yarın mesai bitimine kadar dilekçe vermesi gerekmektedir."
+    },
+
+    // === 3. SPAM ===
+    {
+      subject: "!!! URGENT !!! Claim Your Free $1000 Gift Card Now!",
+      body: "Congratulations! You have been selected as the lucky winner of a free $1000 Walmart Gift Card. Click here to claim your reward immediately. Unsubscribe if you do not wish to receive more promotional offers from us."
+    },
+    {
+      subject: "Earn $500 Daily Working From Home - No Experience Required",
+      body: "Get rich quick with our new automated investment system. You can start earning passive income today from the comfort of your own home. Spaces are limited, register now!"
+    },
+    {
+      subject: "Super Discount: Buy Cheap Pills and Supplements",
+      body: "Get the best quality supplements at the lowest prices online. Order today and get an extra 50% discount on your first purchase. Fast shipping worldwide."
+    },
+    {
+      subject: "Special Promo: Exclusive Webinar and Trading Courses",
+      body: "Join our exclusive trading course today and learn how to double your income in a week. Sign up now to get a free ebook and access to our premium signal group."
+    },
+
+    // === 4. OLTALAMA (PHISHING) ===
+    {
+      subject: "[Security Alert] Confirm your password and verify your bank account details",
+      body: "Dear Customer,\n\nWe detected suspicious activity on your online banking account. For your safety, your account has been temporarily suspended. Please click the link below to confirm your password and verify your identity immediately:\nhttp://secure-banking-alert-identity.com/login\n\nUrgent action is required within 24 hours to prevent permanent account closure."
+    },
+    {
+      subject: "[DİKKAT] E-Posta Şifrenizin Süresi Doluyor - Hemen Güncelleyin",
+      body: "Sayın Kullanıcı,\n\nE-posta hesabınızın şifre kullanım süresi bugün dolacaktır. Hesabınızın askıya alınmasını önlemek amacıyla aşağıdaki doğrulama bağlantısına tıklayarak şifrenizi güncelleyin ve hesabınızı doğrulayın:\nhttp://secure-mail-update.com/verify"
+    },
+    {
+      subject: "Netflix Billing Issue: Update your payment details immediately",
+      body: "We were unable to process your monthly subscription payment. To keep your membership active and avoid interruption, please update your billing information and verify your card now: http://netflix-billing-update.com"
+    },
+    {
+      subject: "E-Devlet Kapısı: Adınıza Tanımlanan Vergi İadesi Bildirimi",
+      body: "Sayın Vatandaş,\n\nGelir İdaresi Başkanlığı tarafından adınıza 3.450 TL vergi iadesi hesaplanmıştır. İadenizi banka hesabınıza aktarmak için e-Devlet kapısı kimlik doğrulama sistemini kullanarak giriş yapın ve kart bilgilerinizi doğrulayın: http://turkiye-gov-tr-vergi-iade.com"
+    }
+  ];
+
+  testEmails.forEach((email, index) => {
+    GmailApp.sendEmail(myEmail, email.subject, email.body);
+    Logger.log(`✓ [${index + 1}/16] "${email.subject}" gönderildi.`);
+    Utilities.sleep(1000); // Kota/hız aşımını önlemek için 1 saniye bekleme
+  });
   
-  // 2. OLTALAMA (Phishing) E-Posta
-  GmailApp.sendEmail(
-    myEmail, 
-    "[Security Alert] Confirm your password and verify your bank account details", 
-    "Dear Customer,\n\nWe detected suspicious activity on your online banking account. For your safety, your account has been temporarily suspended. Please click the link below to confirm your password and verify your identity immediately:\nhttp://secure-banking-alert-identity.com/login\n\nUrgent action is required within 24 hours to prevent permanent account closure."
-  );
-  Logger.log("✓ Oltalama test e-postası gönderildi.");
-  
-  // 3. ÖNEMLİ E-Posta
-  GmailApp.sendEmail(
-    myEmail, 
-    "Proje Final Raporu Teslimi ve Fatura Ödeme Planı", 
-    "Selamlar,\n\nE-posta asistanı projesi için hazırladığımız final raporunun son teslim tarihi bu Cuma günüdür. Ayrıca sunucu masrafları için hazırlanan fatura ekte yer almaktadır. Ödeme işlemlerini en kısa sürede tamamlamamız gerekiyor. Yarın sabah saat 10:00'da son durum değerlendirmesi için bir online toplantı yapacağız.\n\nİyi çalışmalar."
-  );
-  Logger.log("✓ Önemli test e-postası gönderildi.");
-  
-  // 4. NORMAL E-Posta
-  GmailApp.sendEmail(
-    myEmail, 
-    "Hafta sonu piknik ve kahvaltı planı", 
-    "Selam dostum,\n\nBu hafta sonu hava çok güzel olacakmış. Cumartesi sabahı Belgrad Ormanı'nda piknik yapıp kahvaltı etmeyi düşünüyoruz. Diğer arkadaşlar da gelecek. Sen de katılmak ister misin? Yanıtına göre hazırlık yapacağız, haber verirsin."
-  );
-  Logger.log("✓ Normal test e-postası gönderildi.");
-  
-  Logger.log("=== Tüm test e-postaları başarıyla gönderildi! Lütfen gelen kutunuza düşmelerini bekleyin (yaklaşık 10-15 saniye) ===");
+  Logger.log("=== Tüm 16 test e-postası başarıyla gönderildi! ===");
 }
 
 // ============================================================

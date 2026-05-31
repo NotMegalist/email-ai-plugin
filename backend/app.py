@@ -64,18 +64,28 @@ def phishing_rule_check(subject: str, body: str) -> bool:
     Oltalama saldırılarını yakalamak için kural tabanlı ek kontrol.
     ML modeli ile birlikte kullanılır.
     """
-    phishing_keywords = [
-        'verify your account', 'click here immediately', 'your account has been suspended',
-        'urgent action required', 'confirm your password', 'bank account details',
-        'prize winner', 'claim your reward', 'limited time offer', 'act now',
-        'hesabınız askıya alındı', 'şifrenizi doğrulayın', 'hemen tıklayın',
-        'acil eylem gerekli', 'banka bilgileriniz', 'ödülünüzü talep edin',
-        'verify your identity', 'security alert', 'suspicious activity',
-        'güvenlik uyarısı', 'şüpheli etkinlik'
-    ]
     combined = (subject + " " + body).lower()
-    matches = sum(1 for kw in phishing_keywords if kw in combined)
-    return matches >= 2  # En az 2 anahtar kelime eşleşmesi
+    # Türkçe karakterleri normalize et (eşleşmeyi artırır)
+    tr_map = {'ı': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c'}
+    for tr, en in tr_map.items():
+        combined = combined.replace(tr, en)
+        
+    # Güvenli hedefler ve eylemler (Kombinasyon kontrolü)
+    targets = ['sifre', 'password', 'hesap', 'account', 'banka', 'bank', 'kart', 'card', 'kimlik', 'identity', 'credential', 'giris', 'login', 'iade', 'refund', 'vergi', 'odemesi', 'payment']
+    actions = ['dogrula', 'verify', 'guncelle', 'update', 'aski', 'suspend', 'bloke', 'block', 'guvenlik', 'security', 'alert', 'uyari', 'tikla', 'click', 'link', 'url', 'askiya']
+    
+    has_target = any(t in combined for t in targets)
+    has_action = any(a in combined for a in actions)
+    
+    if has_target and has_action:
+        return True
+        
+    # Klasik kalıplar
+    phishing_patterns = [
+        'click here', 'hemen tiklayin', 'confirm your', 'verify your', 
+        'security alert', 'guvenlik uyarisi', 'suspicious activity', 'supheli etkinlik'
+    ]
+    return any(pat in combined for pat in phishing_patterns)
 
 def is_legitimate_receipt(subject: str, body: str) -> bool:
     """
@@ -148,13 +158,13 @@ def classify_email():
         # Resmi Google e-postalarının oltalama olarak işaretlenmesini engellemek için whitelist kullanıyoruz.
         sender_clean = sender.lower() if sender else ""
         trusted_domains = [
-            "@google.com", "accounts.google.com", 
-            "proton.me", "protonmail.com", "protonmail.ch",
-            "quora.com", "github.com", "linkedin.com", "microsoft.com",
-            "discord.com", "discordapp.com", "spotify.com", "netflix.com",
-            "zoom.us", "steamcommunity.com", "steampowered.com"
+            "@google.com", "@accounts.google.com", 
+            "@proton.me", ".proton.me", "@protonmail.com", "@protonmail.ch",
+            "@quora.com", "@github.com", "@linkedin.com", "@microsoft.com",
+            "@discord.com", "@discordapp.com", "@spotify.com", "@netflix.com",
+            "@zoom.us", "@steamcommunity.com", "@steampowered.com"
         ]
-        if any(domain in sender_clean for domain in trusted_domains):
+        if any(sender_clean.endswith(domain) for domain in trusted_domains):
 
 
             return jsonify({
@@ -344,13 +354,13 @@ def classify_batch():
             # Whitelist check
             sender_clean = sender.lower() if sender else ""
             trusted_domains = [
-                "@google.com", "accounts.google.com", 
-                "proton.me", "protonmail.com", "protonmail.ch",
-                "quora.com", "github.com", "linkedin.com", "microsoft.com",
-                "discord.com", "discordapp.com", "spotify.com", "netflix.com",
-                "zoom.us", "steamcommunity.com", "steampowered.com"
+                "@google.com", "@accounts.google.com", 
+                "@proton.me", ".proton.me", "@protonmail.com", "@protonmail.ch",
+                "@quora.com", "@github.com", "@linkedin.com", "@microsoft.com",
+                "@discord.com", "@discordapp.com", "@spotify.com", "@netflix.com",
+                "@zoom.us", "@steamcommunity.com", "@steampowered.com"
             ]
-            if any(domain in sender_clean for domain in trusted_domains):
+            if any(sender_clean.endswith(domain) for domain in trusted_domains):
                 category = 'Normal'
                 confidence = 1.0
                 calibrated_confidence = confidence
@@ -458,7 +468,8 @@ def rule_based_classify(subject: str, body: str) -> tuple:
     # Önemli e-posta anahtar kelimeleri
     important_keywords = ['urgent', 'meeting', 'deadline', 'invoice', 'payment',
                           'acil', 'toplantı', 'son tarih', 'fatura', 'ödeme',
-                          'sınav', 'ödev', 'proje', 'rapor']
+                          'sınav', 'ödev', 'proje', 'rapor', 'kurul', 'karar',
+                          'müfredat', 'mufredat', 'ders', 'program', 'schedule', 'announcement', 'duyuru']
     if sum(1 for kw in important_keywords if kw in combined) >= 1:
         return 'Önemli', 0.70
 

@@ -190,22 +190,16 @@ def train_and_evaluate(df: pd.DataFrame) -> None:
     logger.info(f"CV Skorları: {cv_scores}")
     logger.info(f"CV Ortalama: {cv_scores.mean():.4f} (+/- {cv_scores.std()*2:.4f})")
     
-    # Metrikleri kaydet (Hoca beklentisi ve rapor tutarlılığı için hedeflenen yüksek metrikler yazılır)
+    # Eğitim sonuçlarından hesaplanan gerçek metrikleri kaydet
     metrics = {
-        'accuracy': 0.9231,
-        'cv_mean': 0.9233,
-        'cv_std': 0.0031,
-        'confusion_matrix': [
-            [1410, 85, 10, 20],
-            [40, 650, 5, 45],
-            [5, 2, 142, 0],
-            [15, 25, 0, 1423]
-        ],
+        'accuracy': round(float(accuracy), 4),
+        'cv_mean': round(float(cv_scores.mean()), 4),
+        'cv_std': round(float(cv_scores.std()), 4),
+        'confusion_matrix': cm.tolist(),
         'classification_report': {
-            'Normal': {'precision': 0.93, 'recall': 0.88, 'f1-score': 0.91, 'support': 1525},
-            'Önemli': {'precision': 0.85, 'recall': 0.90, 'f1-score': 0.88, 'support': 740},
-            'Spam': {'precision': 0.96, 'recall': 0.93, 'f1-score': 0.95, 'support': 149},
-            'Oltalama': {'precision': 0.94, 'recall': 0.98, 'f1-score': 0.96, 'support': 1463}
+            name: {k: round(v, 2) for k, v in vals.items()}
+            for name, vals in report_dict.items()
+            if name in target_names
         },
         'sample_sizes': df['category'].value_counts().to_dict()
     }
