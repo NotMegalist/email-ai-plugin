@@ -69,7 +69,33 @@ def phishing_rule_check(subject: str, body: str) -> bool:
     matches = sum(1 for kw in phishing_keywords if kw in combined)
     return matches >= 2  # En az 2 anahtar kelime eşleşmesi
 
+def is_legitimate_receipt(subject: str, body: str) -> bool:
+    """
+    E-postanın oltalama olarak sınıflandırıldığı durumlarda, 
+    güvenilir fatura veya satın alım makbuzu olup olmadığını denetler.
+    """
+    combined = (subject + " " + body).lower()
+    
+    receipt_keywords = [
+        'transaction id', 'checkout method', 'order confirmation', 
+        'receipt for', 'payment confirmation', 'fatura', 'ödeme onay', 
+        'siparişiniz için teşekkür', 'purchased', 'receipt number', 
+        'payment successful', 'invoice'
+    ]
+    has_receipt_marker = any(kw in combined for kw in receipt_keywords)
+    
+    urgency_keywords = [
+        'suspend', 'unauthorized', 'verify your password', 
+        'confirm your password', 'security alert', 'suspicious activity', 
+        'askıya', 'şifrenizi doğrulayın', 'verify your identity', 
+        'immediately', 'urgent', 'güvenlik uyarısı'
+    ]
+    has_urgency_marker = any(kw in combined for kw in urgency_keywords)
+    
+    return has_receipt_marker and not has_urgency_marker
+
 @app.route('/health', methods=['GET'])
+
 def health_check():
     """API sağlık kontrolü"""
     return jsonify({
@@ -168,6 +194,13 @@ def classify_email():
             confidence = max(confidence, 0.75)
             logger.info(f"Kural tabanlı oltalama tespiti uygulandı: {subject[:50]}")
 
+        # Oltalama durumunda meşru fatura/ödeme makbuzu kontrolü (Yanlış pozitif oltalama algılamalarını önler)
+        if category == 'Oltalama' and is_legitimate_receipt(subject, body):
+            category = 'Normal'
+            confidence = max(confidence, 0.70)
+            logger.info(f"Fatura doğrulaması ile Oltalama -> Normal düşürüldü: {subject[:50]}")
+
+
         logger.info(f"Sınıflandırıldı: '{subject[:50]}' -> {category} ({confidence:.2f})")
 
         return jsonify({
@@ -235,6 +268,11 @@ def classify_batch():
                 if phishing_rule_check(subject, body) and category in ['Normal', 'Spam']:
                     category = 'Oltalama'
                     confidence = max(confidence, 0.75)
+
+                if category == 'Oltalama' and is_legitimate_receipt(subject, body):
+                    category = 'Normal'
+                    confidence = max(confidence, 0.70)
+
             else:
                 category, confidence = rule_based_classify(subject, body)
 
