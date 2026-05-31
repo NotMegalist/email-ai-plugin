@@ -146,9 +146,10 @@ function classifyBatch(emails) {
       Logger.log("API Hatası: HTTP " + responseCode);
       Logger.log("Yanıt: " + response.getContentText().substring(0, 500));
       // Sunucu hatasında yerel kural motorunu veya güvenli whitelist kontrolünü çalıştır
+      const trusted = ["@google.com", "accounts.google.com", "@youtube.com", "@github.com", "@tebex.io", "@netflix.com", "@spotify.com", "@steampowered.com", "@playstation.com"];
       return emails.map(email => {
         const senderLower = (email.sender || "").toLowerCase();
-        if (senderLower.includes("@google.com")) {
+        if (trusted.some(domain => senderLower.indexOf(domain) !== -1)) {
           return { category: "Normal", confidence: 1.0 };
         }
         return ruleBased_classify(email.subject, email.body);
@@ -161,9 +162,10 @@ function classifyBatch(emails) {
   } catch (error) {
     Logger.log("API bağlantı hatası: " + error.toString());
     // API erişilemezse kural tabanlı sınıflandırma veya güvenli whitelist kontrolü yap
+    const trusted = ["@google.com", "accounts.google.com", "@youtube.com", "@github.com", "@tebex.io", "@netflix.com", "@spotify.com", "@steampowered.com", "@playstation.com"];
     return emails.map(email => {
       const senderLower = (email.sender || "").toLowerCase();
-      if (senderLower.includes("@google.com")) {
+      if (trusted.some(domain => senderLower.indexOf(domain) !== -1)) {
         return { category: "Normal", confidence: 1.0 };
       }
       return ruleBased_classify(email.subject, email.body);

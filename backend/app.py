@@ -111,10 +111,10 @@ def classify_email():
             return jsonify({'error': 'Konu veya gövde metni gereklidir'}), 400
 
         # Güvenli Gönderenler (Whitelist) Kontrolü
-        # Resmi Google e-postalarının (güvenlik uyarıları, hesap ayarları vb.) 
-        # oltalama olarak işaretlenmesini engellemek için doğrudan Normal yapıyoruz.
+        # Resmi ve güvenilir sistem/ödeme e-postalarının oltalama olarak işaretlenmesini engeller.
         sender_clean = sender.lower() if sender else ""
-        if "@google.com" in sender_clean or "accounts.google.com" in sender_clean:
+        trusted_domains = ["@google.com", "accounts.google.com", "@youtube.com", "@github.com", "@tebex.io", "@netflix.com", "@spotify.com", "@steampowered.com", "@playstation.com"]
+        if any(domain in sender_clean for domain in trusted_domains):
             return jsonify({
                 'category': 'Normal',
                 'confidence': 1.0,
@@ -129,6 +129,7 @@ def classify_email():
                     }
                 }
             })
+
 
         # Model yüklü değilse kural tabanlı sınıflandırma kullan
         if model is None or vectorizer is None:
@@ -217,9 +218,11 @@ def classify_batch():
 
             # Whitelist check
             sender_clean = sender.lower() if sender else ""
-            if "@google.com" in sender_clean or "accounts.google.com" in sender_clean:
+            trusted_domains = ["@google.com", "accounts.google.com", "@youtube.com", "@github.com", "@tebex.io", "@netflix.com", "@spotify.com", "@steampowered.com", "@playstation.com"]
+            if any(domain in sender_clean for domain in trusted_domains):
                 category = 'Normal'
                 confidence = 1.0
+
             elif model is not None and vectorizer is not None:
                 combined = preprocess_text(f"{subject} {body}")
                 features = vectorizer.transform([combined])
