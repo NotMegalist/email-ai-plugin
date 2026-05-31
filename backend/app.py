@@ -41,6 +41,14 @@ def preprocess_text(text: str) -> str:
         return ""
     # Küçük harfe çevir
     text = text.lower()
+    
+    # Türkçe karakterleri İngilizce karşılıklarına dönüştür (kelime bölünmelerini önler)
+    tr_map = {
+        'ı': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c'
+    }
+    for tr, en in tr_map.items():
+        text = text.replace(tr, en)
+        
     # URL'leri çıkar
     text = re.sub(r'http\S+|www\S+', 'URL', text)
     # E-posta adreslerini çıkar

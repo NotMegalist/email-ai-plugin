@@ -36,6 +36,14 @@ def preprocess_text(text: str) -> str:
     if not isinstance(text, str) or not text:
         return ""
     text = text.lower()
+    
+    # Türkçe karakterleri İngilizce karşılıklarına dönüştür (kelime bölünmelerini önler)
+    tr_map = {
+        'ı': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c'
+    }
+    for tr, en in tr_map.items():
+        text = text.replace(tr, en)
+        
     text = re.sub(r'http\S+|www\S+', 'URL', text)
     text = re.sub(r'\S+@\S+', 'EMAIL', text)
     text = re.sub(r'[^a-zA-Z0-9\s]', ' ', text)
