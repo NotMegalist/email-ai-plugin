@@ -1,16 +1,16 @@
 /**
  * Yapay Zeka Destekli Gmail E-Posta Kategorilendirme Eklentisi
- * Google Apps Script (GAS) ile Gmail entegrasyonu
+ * Google Apps Script (GAS) ile Gmail Entegrasyonu ve Hibrit Sınıflandırma Sistemi
  * 
- * Kurulum:
- * 1. Gmail hesabınıza giriş yapın
- * 2. script.google.com adresine gidin
- * 3. Bu kodu yapıştırın
- * 4. API_URL değişkenini Flask API adresinizle güncelleyin
- * 5. Deploy > New deployment > Add-on olarak yayınlayın
+ * Bu yazılım, tez çalışması kapsamında geliştirilmiş olup, gelen kutusuna ulaşan
+ * e-postaları "Normal", "Önemli", "Spam" ve "Oltalama (Phishing)" olarak 
+ * 4 farklı kategoriye otomatik sınıflandırır ve etiketler.
  * 
- * Geliştirme ortamı için: API_URL'yi ngrok URL'siyle değiştirin
- * Üretim ortamı için: Render.com veya Railway.app ücretsiz sunucu kullanın
+ * Sistem Özellikleri:
+ * - Uzak Sunucu Entegrasyonu: Render.com üzerinde barındırılan Flask API ile çalışır.
+ * - Yapay Zeka Modeli: Çok Terimli Naive Bayes (Multinomial Naive Bayes) algoritması.
+ * - Yedek Kural Motoru (Fallback): API kesintilerinde yerel regex tabanlı otonom çalışır.
+ * - Güvenlik Katmanı: Oltalama (Phishing) tespitinde otomatik e-posta uyarısı tetikler.
  */
 
 // ============================================================
