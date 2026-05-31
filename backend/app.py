@@ -185,8 +185,8 @@ def classify_email():
         features = vectorizer.transform([combined_text])
 
         # Türkçe veya çok kısa e-postalar için ML modelinin yetersiz kelime eşleşmesi durumunu kontrol et
-        # Eğer eşleşen kelime sayısı çok az ise (features.nnz < 4), kural tabanlı sınıflandırmaya güvenli geçiş yap
-        if features.nnz < 4:
+        # Eğer eşleşen kelime sayısı çok az ise (features.nnz < 12), kural tabanlı sınıflandırmaya güvenli geçiş yap
+        if features.nnz < 12:
             category, confidence = rule_based_classify(subject, body)
             logger.info(f"Yetersiz kelime eşleşmesi ({features.nnz} kelime), kural tabanlı sınıflandırma kullanıldı: {subject[:50]} -> {category}")
             
@@ -299,7 +299,7 @@ def classify_batch():
                 features = vectorizer.transform([combined])
                 
                 # Türkçe veya çok kısa e-postalar için ML modeli yetersiz kalırsa kural tabanlı sınıflandırmaya geç
-                if features.nnz < 4:
+                if features.nnz < 12:
                     category, confidence = rule_based_classify(subject, body)
                 else:
                     prediction = model.predict(features)[0]
