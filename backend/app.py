@@ -236,6 +236,23 @@ def classify_email():
             confidence = max(confidence, 0.70)
             logger.info(f"Fatura doğrulaması ile Oltalama -> Normal düşürüldü: {subject[:50]}")
 
+        # Oltalama olarak tahmin edilmiş ama reklam/promosyon (Spam) kokan e-postaları Spam'e kaydır
+        if category == 'Oltalama':
+            combined_lower = (subject + " " + body).lower()
+            phishing_markers = [
+                'verify', 'password', 'suspend', 'bank', 'security', 'identity', 'credential', 'login', 'unauthorized',
+                'doğrula', 'şifre', 'askı', 'hesap askı', 'güvenlik', 'banka', 'tc kimlik', 'kimlik', 'giris'
+            ]
+            spam_markers = [
+                'discount', 'off', 'deal', 'webinar', 'income', 'watches', 'winner', 'prize', 'shop', 'webinara',
+                'indirim', 'fırsat', 'kampanya', 'kazan', 'hediye', 'ucuz', 'satın al', 'bedava'
+            ]
+            has_phishing_marker = any(marker in combined_lower for marker in phishing_markers)
+            has_spam_marker = any(marker in combined_lower for marker in spam_markers)
+            if not has_phishing_marker and has_spam_marker:
+                category = 'Spam'
+                logger.info(f"Oltalama -> Spam sınıfına kaydırıldı (reklam/promosyon içerik): {subject[:50]}")
+
         # Oltalama için güven eşiği kontrolü (Güven skoru < 0.75 ise Normal'e çek)
         if category == 'Oltalama' and confidence < 0.75:
             logger.info(f"Düşük güvenli {category} (%{confidence*100:.1f}) -> Normal yapıldı: {subject[:50]}")
@@ -323,6 +340,22 @@ def classify_batch():
                     if category == 'Oltalama' and is_legitimate_receipt(subject, body):
                         category = 'Normal'
                         confidence = max(confidence, 0.70)
+
+                    # Oltalama olarak tahmin edilmiş ama reklam/promosyon (Spam) kokan e-postaları Spam'e kaydır
+                    if category == 'Oltalama':
+                        combined_lower = (subject + " " + body).lower()
+                        phishing_markers = [
+                            'verify', 'password', 'suspend', 'bank', 'security', 'identity', 'credential', 'login', 'unauthorized',
+                            'doğrula', 'şifre', 'askı', 'hesap askı', 'güvenlik', 'banka', 'tc kimlik', 'kimlik', 'giris'
+                        ]
+                        spam_markers = [
+                            'discount', 'off', 'deal', 'webinar', 'income', 'watches', 'winner', 'prize', 'shop', 'webinara',
+                            'indirim', 'fırsat', 'kampanya', 'kazan', 'hediye', 'ucuz', 'satın al', 'bedava'
+                        ]
+                        has_phishing_marker = any(marker in combined_lower for marker in phishing_markers)
+                        has_spam_marker = any(marker in combined_lower for marker in spam_markers)
+                        if not has_phishing_marker and has_spam_marker:
+                            category = 'Spam'
 
                     # Düşük güvenli Oltalama tahminlerini Normal'e düşür (Yanlış alarmları engellemek için)
                     if category == 'Oltalama' and confidence < 0.75:
