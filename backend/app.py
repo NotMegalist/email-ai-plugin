@@ -137,10 +137,11 @@ def classify_email():
             return jsonify({'error': 'Konu veya gövde metni gereklidir'}), 400
 
         # Güvenli Gönderenler (Whitelist) Kontrolü
-        # Resmi ve güvenilir sistem/ödeme e-postalarının oltalama olarak işaretlenmesini engeller.
+        # Resmi Google e-postalarının oltalama olarak işaretlenmesini engellemek için whitelist kullanıyoruz.
         sender_clean = sender.lower() if sender else ""
-        trusted_domains = ["@google.com", "accounts.google.com", "@youtube.com", "@github.com", "@tebex.io", "@hytale.com", "@netflix.com", "@spotify.com", "@steampowered.com", "@playstation.com"]
+        trusted_domains = ["@google.com", "accounts.google.com"]
         if any(domain in sender_clean for domain in trusted_domains):
+
 
             return jsonify({
                 'category': 'Normal',
@@ -252,9 +253,10 @@ def classify_batch():
 
             # Whitelist check
             sender_clean = sender.lower() if sender else ""
-            trusted_domains = ["@google.com", "accounts.google.com", "@youtube.com", "@github.com", "@tebex.io", "@hytale.com", "@netflix.com", "@spotify.com", "@steampowered.com", "@playstation.com"]
+            trusted_domains = ["@google.com", "accounts.google.com"]
             if any(domain in sender_clean for domain in trusted_domains):
                 category = 'Normal'
+
 
                 confidence = 1.0
 
