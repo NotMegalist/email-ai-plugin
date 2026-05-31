@@ -241,7 +241,7 @@ def classify_email():
         category = category_map.get(int(prediction), 'Normal')
 
         # Oltalama kural kontrolü - ML modelini destekle
-        if phishing_rule_check(subject, body) and category in ['Normal', 'Spam']:
+        if phishing_rule_check(subject, body):
             category = 'Oltalama'
             confidence = max(confidence, 0.75)
             logger.info(f"Kural tabanlı oltalama tespiti uygulandı: {subject[:50]}")
@@ -380,7 +380,7 @@ def classify_batch():
                     category_map = {0: 'Normal', 1: 'Önemli', 2: 'Spam', 3: 'Oltalama'}
                     category = category_map.get(int(prediction), 'Normal')
 
-                    if phishing_rule_check(subject, body) and category in ['Normal', 'Spam']:
+                    if phishing_rule_check(subject, body):
                         category = 'Oltalama'
                         confidence = max(confidence, 0.75)
 
