@@ -116,6 +116,80 @@ function classifyNewEmails() {
 }
 
 /**
+ * Taslak e-postaları sınıflandır ve etiketle (Kota tasarrufu için test amacıyla kullanılır)
+ */
+function classifyDrafts() {
+  Logger.log("=== Taslakları Sınıflandırma Başlıyor ===");
+  
+  try {
+    ensureLabelsExist();
+    
+    // Gmail taslaklarını al
+    const drafts = GmailApp.getDrafts();
+    
+    if (drafts.length === 0) {
+      Logger.log("İşlenecek taslak e-posta yok.");
+      return;
+    }
+    
+    const emailData = [];
+    const threads = [];
+    const draftsToProcess = [];
+    
+    for (const draft of drafts) {
+      const thread = draft.getMessage().getThread();
+      
+      // Zaten etiketlenmiş olan taslakları atla
+      const labels = thread.getLabels().map(l => l.getName());
+      const isProcessed = labels.some(name => Object.values(LABEL_NAMES).includes(name));
+      if (isProcessed) continue;
+      
+      const message = draft.getMessage();
+      const subject = message.getSubject() || "(Konu Yok)";
+      
+      // Kendi uyarı taslağımız veya sistem taslaklarını atla
+      if (subject.indexOf("⚠️") !== -1) continue;
+      
+      emailData.push({
+        id: thread.getId(),
+        subject: subject,
+        body: message.getPlainBody().substring(0, 2000),
+        sender: message.getFrom()
+      });
+      threads.push(thread);
+      draftsToProcess.push(draft);
+      
+      if (emailData.length >= MAX_EMAILS_PER_RUN) break;
+    }
+    
+    if (emailData.length === 0) {
+      Logger.log("İşlenecek yeni taslak bulunamadı.");
+      return;
+    }
+    
+    Logger.log(`${emailData.length} yeni taslak bulundu. İşleniyor...`);
+    const results = classifyBatch(emailData);
+    
+    let processedCount = 0;
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      const thread = threads[i];
+      
+      if (result && result.category) {
+        applyLabel(thread, result.category);
+        processedCount++;
+        Logger.log(`✓ Taslak: "${emailData[i].subject.substring(0, 50)}" -> ${result.category} (${(result.confidence * 100).toFixed(1)}%)`);
+      }
+    }
+    
+    Logger.log(`=== Tamamlandı: ${processedCount} taslak e-posta işlendi ===`);
+    
+  } catch (error) {
+    Logger.log("HATA (Taslak Sınıflandırma): " + error.toString());
+  }
+}
+
+/**
  * Flask API'sine toplu sınıflandırma isteği gönder
  */
 function classifyBatch(emails) {
@@ -503,6 +577,97 @@ function sendTestEmails() {
   });
   
   Logger.log("=== Tüm 16 test e-postası başarıyla gönderildi! ===");
+}
+
+/**
+ * Kota tasarrufu için test e-postalarını göndermek yerine "Taslaklar" (Drafts) klasöründe oluşturur.
+ * Bu sayede günlük 100 mail gönderme kotasına takılmadan test yapabilirsiniz.
+ */
+function createTestDrafts() {
+  const myEmail = Session.getActiveUser().getEmail();
+  Logger.log("Test taslakları oluşturuluyor: " + myEmail);
+  
+  const testEmails = [
+    // === 1. NORMAL ===
+    {
+      subject: "Proje sunumu slayt taslağı",
+      body: "Selamlar, sunum için hazırladığım slayt taslağını ekte paylaşıyorum. Tasarımı nasıl buldunuz? Yarın konuşuruz."
+    },
+    {
+      subject: "Akşamki halı saha maçı detayları",
+      body: "Arkadaşlar akşamki maç saat 21:00'da başlıyor. Lütfen herkes 15 dakika önce sahada olsun, eksik oyuncu kalmasın."
+    },
+    {
+      subject: "Hafta sonu doğa yürüyüşü planı",
+      body: "Selam, pazar günü Kartepe'de doğa yürüyüşü yapmayı planlıyoruz. Gelmek isteyenler cuma akşamına kadar haber versin."
+    },
+    {
+      subject: "Yeni kütüphane kitap önerileri",
+      body: "Merhaba, kütüphanemiz için sipariş etmek istediğiniz kitapların listesini bu forma doldurarak bize iletebilirsiniz."
+    },
+
+    // === 2. ÖNEMLİ ===
+    {
+      subject: "Bölüm Kurulu Kararları ve Sınav Takvimi",
+      body: "Değerli hocalarım ve öğrenciler, bu haftaki akademik kurul toplantısında alınan kararlar ve güncellenen sınav programı ektedir. Lütfen kontrol ediniz."
+    },
+    {
+      subject: "Haftalık Proje Değerlendirme Raporu Teslimi",
+      body: "Selamlar, proje ilerleme raporunun sisteme yüklenmesi için son tarih yarın mesai bitimidir. Gecikme olmaması önemle rica olunur."
+    },
+    {
+      subject: "Ders Programı Değişikliği ve Yeni Müfredat",
+      body: "Öğrencilerin dikkatine: Önümüzdeki hafta uygulanacak yeni ders programı ve güncellenen müfredat detayları ektedir."
+    },
+    {
+      subject: "Fatura Ödeme Talebi ve Bütçe Planı",
+      body: "Sayın yetkili, bu aya ait sunucu masrafları faturası ektedir. Ödeme işlemlerinin en geç cuma gününe kadar tamamlanması gerekmektedir."
+    },
+
+    // === 3. SPAM ===
+    {
+      subject: "!!! EXCLUSIVE OFFER !!! Multiply your income today!",
+      body: "Learn the secrets of successful trading from our top experts. Sign up now and receive a free copy of our best-selling ebook. Unsubscribe at any time."
+    },
+    {
+      subject: "Congratulations: You won a free $500 gift card!",
+      body: "You have been selected as our lucky visitor today. Click here to claim your $500 gift card immediately. Offer valid for 24 hours."
+    },
+    {
+      subject: "Multiply your income today! Join our automated crypto group",
+      body: "Earn passive income every single day with our new trading algorithm. Minimal investment required. Join now to claim your free bonus!"
+    },
+    {
+      subject: "Mega Discount: Buy high quality watches and vitamins",
+      body: "Get up to 70% off on all luxury items and vitamins this week only. Fast delivery and free shipping worldwide. Order today!"
+    },
+
+    // === 4. OLTALAMA (PHISHING) ===
+    {
+      subject: "[DİKKAT] Banka Hesabınız Askıya Alındı - Kimlik Bilgilerini Doğrulayın",
+      body: "Sayın Müşterimiz, hesabınızda şüpheli işlemler tespit edildiği için kartınız geçici olarak bloke edilmiştir. Blokeyi kaldırmak için lütfen linke tıklayarak bilgilerinizi doğrulayın: http://secure-bank-login-verification.com"
+    },
+    {
+      subject: "Netflix Payment Alert: Update billing details now",
+      body: "Your subscription payment has failed. To avoid service suspension and continue streaming, please click this link to update your card and verify account: http://netflix-billing-update-alert.com"
+    },
+    {
+      subject: "[Güvenlik Uyarısı] Gmail Şifrenizi Hemen Güncelleyin",
+      body: "Hesabınıza yetkisiz bir konumdan giriş yapılmaya çalışıldı. Güvenliğinizi sağlamak amacıyla şifrenizi hemen güncellemeniz ve hesabınızı doğrulamanız gerekmektedir: http://secure-gmail-password-update.com"
+    },
+    {
+      subject: "E-Devlet Kapısı: Adınıza Tanımlanan Vergi İadesi Bildirimi",
+      body: "Sayın Vatandaş, Gelir İdaresi Başkanlığı tarafından adınıza 3.450 TL vergi iadesi hesaplanmıştır. İadenizi banka hesabınıza aktarmak için e-Devlet kapısı kimlik doğrulama sistemini kullanarak giriş yapın ve kart bilgilerinizi doğrulayın: http://turkiye-gov-tr-vergi-iade.com"
+    }
+  ];
+
+  testEmails.forEach((email, index) => {
+    GmailApp.createDraft(myEmail, email.subject, email.body);
+    Logger.log(`✓ [${index + 1}/16] Taslak "${email.subject}" oluşturuldu.`);
+    Utilities.sleep(500); // 0.5 saniye bekleme
+  });
+  
+  Logger.log("=== Tüm 16 test taslağı başarıyla oluşturuldu! ===");
 }
 
 // ============================================================
