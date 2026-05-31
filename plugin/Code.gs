@@ -422,74 +422,74 @@ function sendTestEmails() {
   const testEmails = [
     // === 1. NORMAL ===
     {
-      subject: "Yarın akşamki halı saha maçı kadrosu",
-      body: "Selam arkadaşlar, yarın akşam saat 20:00'da halı saha maçı yapıyoruz. Eksikler var, gelmek isteyenler gruba yazsın."
+      subject: "Proje sunumu slayt taslağı",
+      body: "Selamlar, sunum için hazırladığım slayt taslağını ekte paylaşıyorum. Tasarımı nasıl buldunuz? Yarın konuşuruz."
     },
     {
-      subject: "Hafta sonu piknik ve kahvaltı planı",
-      body: "Selam dostum, bu hafta sonu Belgrad Ormanı'nda piknik ve kahvaltı yapıyoruz. Cumartesi sabahı saat 9:00'da buluşacağız. Katılabilecek misin?"
+      subject: "Akşamki halı saha maçı detayları",
+      body: "Arkadaşlar akşamki maç saat 21:00'da başlıyor. Lütfen herkes 15 dakika önce sahada olsun, eksik oyuncu kalmasın."
     },
     {
-      subject: "Yeni kütüphane kitapları listesi",
-      body: "Merhaba, kütüphanemize bu hafta yeni romanlar ve araştırma kitapları eklendi. Listeyi web sitemizden inceleyebilirsiniz."
+      subject: "Hafta sonu doğa yürüyüşü planı",
+      body: "Selam, pazar günü Kartepe'de doğa yürüyüşü yapmayı planlıyoruz. Gelmek isteyenler cuma akşamına kadar haber versin."
     },
     {
-      subject: "Akşam yemeği için rezervasyon yapıldı",
-      body: "Selam, cuma akşamı için restoranda yerimizi ayırttım. Saat 19:30'da orada buluşuruz, gecikmeyin."
+      subject: "Yeni kütüphane kitap önerileri",
+      body: "Merhaba, kütüphanemiz için sipariş etmek istediğiniz kitapların listesini bu forma doldurarak bize iletebilirsiniz."
     },
 
     // === 2. ÖNEMLİ ===
     {
-      subject: "Proje Final Raporu Teslimi ve Fatura Ödeme Planı",
-      body: "Selamlar,\n\nE-posta asistanı projesi için hazırladığımız final raporunun son teslim tarihi bu Cuma günüdür. Ayrıca sunucu masrafları için hazırlanan fatura ekte yer almaktadır. Ödeme işlemlerini en kısa sürede tamamlamamız gerekiyor. Yarın sabah saat 10:00'da son durum değerlendirmesi için bir online toplantı yapacağız.\n\nİyi çalışmalar."
+      subject: "Bölüm Kurulu Kararları ve Sınav Takvimi",
+      body: "Değerli hocalarım ve öğrenciler, bu haftaki akademik kurul toplantısında alınan kararlar ve güncellenen sınav programı ektedir. Lütfen kontrol ediniz."
     },
     {
-      subject: "Haftalık Proje Değerlendirme Toplantısı",
-      body: "Merhaba arkadaşlar, yarın sabah saat 10:00'da haftalık ilerleme ve durum değerlendirme toplantısı yapılacaktır. Herkesin hazırladığı son slaytları yanında getirmesini rica ederim. Katılım zorunludur."
+      subject: "Haftalık Proje Değerlendirme Raporu Teslimi",
+      body: "Selamlar, proje ilerleme raporunun sisteme yüklenmesi için son tarih yarın mesai bitimidir. Gecikme olmaması önemle rica olunur."
     },
     {
-      subject: "Bölüm Kurulu Kararları ve Yeni Müfredat",
-      body: "Sayın hocalarım, bu haftaki kurulda alınan kararlar ve önümüzdeki dönem uygulanacak olan ders programı ektedir. Lütfen değişiklikleri inceleyip geri bildirimlerinizi iletiniz."
+      subject: "Ders Programı Değişikliği ve Yeni Müfredat",
+      body: "Öğrencilerin dikkatine: Önümüzdeki hafta uygulanacak yeni ders programı ve güncellenen müfredat detayları ektedir."
     },
     {
-      subject: "Akademik Takvim Güncellemesi ve Sınav Tarihleri",
-      body: "Değerli öğrenciler, bahar dönemi bütünleme ve mazeret sınavlarının güncellenmiş takvimi bölüm web sayfasında ilan edilmiştir. Sınav çakışması olanların en geç yarın mesai bitimine kadar dilekçe vermesi gerekmektedir."
+      subject: "Fatura Ödeme Talebi ve Bütçe Planı",
+      body: "Sayın yetkili, bu aya ait sunucu masrafları faturası ektedir. Ödeme işlemlerinin en geç cuma gününe kadar tamamlanması gerekmektedir."
     },
 
     // === 3. SPAM ===
     {
-      subject: "!!! URGENT !!! Claim Your Free $1000 Gift Card Now!",
-      body: "Congratulations! You have been selected as the lucky winner of a free $1000 Walmart Gift Card. Click here to claim your reward immediately. Unsubscribe if you do not wish to receive more promotional offers from us."
+      subject: "!!! EXCLUSIVE OFFER !!! Multiply your income today!",
+      body: "Learn the secrets of successful trading from our top experts. Sign up now and receive a free copy of our best-selling ebook. Unsubscribe at any time."
     },
     {
-      subject: "Earn $500 Daily Working From Home - No Experience Required",
-      body: "Get rich quick with our new automated investment system. You can start earning passive income today from the comfort of your own home. Spaces are limited, register now!"
+      subject: "Congratulations: You won a free $500 gift card!",
+      body: "You have been selected as our lucky visitor today. Click here to claim your $500 gift card immediately. Offer valid for 24 hours."
     },
     {
-      subject: "Super Discount: Buy Cheap Pills and Supplements",
-      body: "Get the best quality supplements at the lowest prices online. Order today and get an extra 50% discount on your first purchase. Fast shipping worldwide."
+      subject: "Multiply your income today! Join our automated crypto group",
+      body: "Earn passive income every single day with our new trading algorithm. Minimal investment required. Join now to claim your free bonus!"
     },
     {
-      subject: "Special Promo: Exclusive Webinar and Trading Courses",
-      body: "Join our exclusive trading course today and learn how to double your income in a week. Sign up now to get a free ebook and access to our premium signal group."
+      subject: "Mega Discount: Buy high quality watches and vitamins",
+      body: "Get up to 70% off on all luxury items and vitamins this week only. Fast delivery and free shipping worldwide. Order today!"
     },
 
     // === 4. OLTALAMA (PHISHING) ===
     {
-      subject: "[Security Alert] Confirm your password and verify your bank account details",
-      body: "Dear Customer,\n\nWe detected suspicious activity on your online banking account. For your safety, your account has been temporarily suspended. Please click the link below to confirm your password and verify your identity immediately:\nhttp://secure-banking-alert-identity.com/login\n\nUrgent action is required within 24 hours to prevent permanent account closure."
+      subject: "[DİKKAT] Banka Hesabınız Askıya Alındı - Kimlik Bilgilerini Doğrulayın",
+      body: "Sayın Müşterimiz, hesabınızda şüpheli işlemler tespit edildiği için kartınız geçici olarak bloke edilmiştir. Blokeyi kaldırmak için lütfen linke tıklayarak bilgilerinizi doğrulayın: http://secure-bank-login-verification.com"
     },
     {
-      subject: "[DİKKAT] E-Posta Şifrenizin Süresi Doluyor - Hemen Güncelleyin",
-      body: "Sayın Kullanıcı,\n\nE-posta hesabınızın şifre kullanım süresi bugün dolacaktır. Hesabınızın askıya alınmasını önlemek amacıyla aşağıdaki doğrulama bağlantısına tıklayarak şifrenizi güncelleyin ve hesabınızı doğrulayın:\nhttp://secure-mail-update.com/verify"
+      subject: "Netflix Payment Alert: Update billing details now",
+      body: "Your subscription payment has failed. To avoid service suspension and continue streaming, please click this link to update your card and verify account: http://netflix-billing-update-alert.com"
     },
     {
-      subject: "Netflix Billing Issue: Update your payment details immediately",
-      body: "We were unable to process your monthly subscription payment. To keep your membership active and avoid interruption, please update your billing information and verify your card now: http://netflix-billing-update.com"
+      subject: "[Güvenlik Uyarısı] Gmail Şifrenizi Hemen Güncelleyin",
+      body: "Hesabınıza yetkisiz bir konumdan giriş yapılmaya çalışıldı. Güvenliğinizi sağlamak amacıyla şifrenizi hemen güncellemeniz ve hesabınızı doğrulamanız gerekmektedir: http://secure-gmail-password-update.com"
     },
     {
       subject: "E-Devlet Kapısı: Adınıza Tanımlanan Vergi İadesi Bildirimi",
-      body: "Sayın Vatandaş,\n\nGelir İdaresi Başkanlığı tarafından adınıza 3.450 TL vergi iadesi hesaplanmıştır. İadenizi banka hesabınıza aktarmak için e-Devlet kapısı kimlik doğrulama sistemini kullanarak giriş yapın ve kart bilgilerinizi doğrulayın: http://turkiye-gov-tr-vergi-iade.com"
+      body: "Sayın Vatandaş, Gelir İdaresi Başkanlığı tarafından adınıza 3.450 TL vergi iadesi hesaplanmıştır. İadenizi banka hesabınıza aktarmak için e-Devlet kapısı kimlik doğrulama sistemini kullanarak giriş yapın ve kart bilgilerinizi doğrulayın: http://turkiye-gov-tr-vergi-iade.com"
     }
   ];
 
