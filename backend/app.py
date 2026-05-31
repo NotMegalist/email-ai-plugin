@@ -244,7 +244,7 @@ def classify_email():
                 'doğrula', 'şifre', 'askı', 'hesap askı', 'güvenlik', 'banka', 'tc kimlik', 'kimlik', 'giris'
             ]
             spam_markers = [
-                'discount', 'off', 'deal', 'webinar', 'income', 'watches', 'winner', 'prize', 'shop', 'webinara',
+                'discount', '% off', 'special deal', 'webinar', 'income', 'watches', 'winner', 'prize', 'shop', 'webinara',
                 'indirim', 'fırsat', 'kampanya', 'kazan', 'hediye', 'ucuz', 'satın al', 'bedava'
             ]
             # Alt kelime (substring) eşleşmelerini önlemek için tam kelime kontrolü yapıyoruz (Örn: "offered" -> "off" eşleşmesini engeller)
@@ -369,7 +369,7 @@ def classify_batch():
                             'doğrula', 'şifre', 'askı', 'hesap askı', 'güvenlik', 'banka', 'tc kimlik', 'kimlik', 'giris'
                         ]
                         spam_markers = [
-                            'discount', 'off', 'deal', 'webinar', 'income', 'watches', 'winner', 'prize', 'shop', 'webinara',
+                            'discount', '% off', 'special deal', 'webinar', 'income', 'watches', 'winner', 'prize', 'shop', 'webinara',
                             'indirim', 'fırsat', 'kampanya', 'kazan', 'hediye', 'ucuz', 'satın al', 'bedava'
                         ]
                         words = set(preprocess_text(combined_lower).split())
