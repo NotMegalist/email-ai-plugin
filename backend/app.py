@@ -147,7 +147,7 @@ def classify_email():
         # Güvenli Gönderenler (Whitelist) Kontrolü
         # Resmi Google e-postalarının oltalama olarak işaretlenmesini engellemek için whitelist kullanıyoruz.
         sender_clean = sender.lower() if sender else ""
-        trusted_domains = ["@google.com", "accounts.google.com"]
+        trusted_domains = ["@google.com", "accounts.google.com", "news.proton.me", "offers.proton.me", "mail.proton.me"]
         if any(domain in sender_clean for domain in trusted_domains):
 
 
@@ -337,7 +337,7 @@ def classify_batch():
 
             # Whitelist check
             sender_clean = sender.lower() if sender else ""
-            trusted_domains = ["@google.com", "accounts.google.com"]
+            trusted_domains = ["@google.com", "accounts.google.com", "news.proton.me", "offers.proton.me", "mail.proton.me"]
             if any(domain in sender_clean for domain in trusted_domains):
                 category = 'Normal'
                 confidence = 1.0
