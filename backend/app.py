@@ -236,8 +236,8 @@ def classify_email():
             confidence = max(confidence, 0.70)
             logger.info(f"Fatura doğrulaması ile Oltalama -> Normal düşürüldü: {subject[:50]}")
 
-        # Oltalama veya Spam için güven eşiği kontrolü (Güven skoru < 0.75 ise Normal'e çek)
-        if category in ['Oltalama', 'Spam'] and confidence < 0.75:
+        # Oltalama için güven eşiği kontrolü (Güven skoru < 0.75 ise Normal'e çek)
+        if category == 'Oltalama' and confidence < 0.75:
             logger.info(f"Düşük güvenli {category} (%{confidence*100:.1f}) -> Normal yapıldı: {subject[:50]}")
             category = 'Normal'
 
@@ -324,8 +324,8 @@ def classify_batch():
                         category = 'Normal'
                         confidence = max(confidence, 0.70)
 
-                    # Düşük güvenli Oltalama/Spam tahminlerini Normal'e düşür (Yanlış alarmları engellemek için)
-                    if category in ['Oltalama', 'Spam'] and confidence < 0.75:
+                    # Düşük güvenli Oltalama tahminlerini Normal'e düşür (Yanlış alarmları engellemek için)
+                    if category == 'Oltalama' and confidence < 0.75:
                         category = 'Normal'
 
             else:
