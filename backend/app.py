@@ -247,8 +247,28 @@ def classify_email():
                 'discount', 'off', 'deal', 'webinar', 'income', 'watches', 'winner', 'prize', 'shop', 'webinara',
                 'indirim', 'fırsat', 'kampanya', 'kazan', 'hediye', 'ucuz', 'satın al', 'bedava'
             ]
-            has_phishing_marker = any(marker in combined_lower for marker in phishing_markers)
-            has_spam_marker = any(marker in combined_lower for marker in spam_markers)
+            # Alt kelime (substring) eşleşmelerini önlemek için tam kelime kontrolü yapıyoruz (Örn: "offered" -> "off" eşleşmesini engeller)
+            words = set(preprocess_text(combined_lower).split())
+            has_phishing_marker = False
+            for marker in phishing_markers:
+                if ' ' in marker:
+                    if marker in combined_lower:
+                        has_phishing_marker = True
+                        break
+                else:
+                    if marker in words:
+                        has_phishing_marker = True
+                        break
+            has_spam_marker = False
+            for marker in spam_markers:
+                if ' ' in marker:
+                    if marker in combined_lower:
+                        has_spam_marker = True
+                        break
+                else:
+                    if marker in words:
+                        has_spam_marker = True
+                        break
             if not has_phishing_marker and has_spam_marker:
                 category = 'Spam'
                 logger.info(f"Oltalama -> Spam sınıfına kaydırıldı (reklam/promosyon içerik): {subject[:50]}")
@@ -352,8 +372,27 @@ def classify_batch():
                             'discount', 'off', 'deal', 'webinar', 'income', 'watches', 'winner', 'prize', 'shop', 'webinara',
                             'indirim', 'fırsat', 'kampanya', 'kazan', 'hediye', 'ucuz', 'satın al', 'bedava'
                         ]
-                        has_phishing_marker = any(marker in combined_lower for marker in phishing_markers)
-                        has_spam_marker = any(marker in combined_lower for marker in spam_markers)
+                        words = set(preprocess_text(combined_lower).split())
+                        has_phishing_marker = False
+                        for marker in phishing_markers:
+                            if ' ' in marker:
+                                if marker in combined_lower:
+                                    has_phishing_marker = True
+                                    break
+                            else:
+                                if marker in words:
+                                    has_phishing_marker = True
+                                    break
+                        has_spam_marker = False
+                        for marker in spam_markers:
+                            if ' ' in marker:
+                                if marker in combined_lower:
+                                    has_spam_marker = True
+                                    break
+                            else:
+                                if marker in words:
+                                    has_spam_marker = True
+                                    break
                         if not has_phishing_marker and has_spam_marker:
                             category = 'Spam'
 
