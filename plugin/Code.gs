@@ -146,7 +146,7 @@ function classifyBatch(emails) {
       Logger.log("API Hatası: HTTP " + responseCode);
       Logger.log("Yanıt: " + response.getContentText().substring(0, 500));
       // Sunucu hatasında yerel kural motorunu veya güvenli whitelist kontrolünü çalıştır
-      const trusted = ["@google.com", "accounts.google.com", "@youtube.com", "@github.com", "@tebex.io", "@netflix.com", "@spotify.com", "@steampowered.com", "@playstation.com"];
+      const trusted = ["@google.com", "accounts.google.com", "@youtube.com", "@github.com", "@tebex.io", "@hytale.com", "@netflix.com", "@spotify.com", "@steampowered.com", "@playstation.com"];
       return emails.map(email => {
         const senderLower = (email.sender || "").toLowerCase();
         if (trusted.some(domain => senderLower.indexOf(domain) !== -1)) {
@@ -162,7 +162,7 @@ function classifyBatch(emails) {
   } catch (error) {
     Logger.log("API bağlantı hatası: " + error.toString());
     // API erişilemezse kural tabanlı sınıflandırma veya güvenli whitelist kontrolü yap
-    const trusted = ["@google.com", "accounts.google.com", "@youtube.com", "@github.com", "@tebex.io", "@netflix.com", "@spotify.com", "@steampowered.com", "@playstation.com"];
+    const trusted = ["@google.com", "accounts.google.com", "@youtube.com", "@github.com", "@tebex.io", "@hytale.com", "@netflix.com", "@spotify.com", "@steampowered.com", "@playstation.com"];
     return emails.map(email => {
       const senderLower = (email.sender || "").toLowerCase();
       if (trusted.some(domain => senderLower.indexOf(domain) !== -1)) {

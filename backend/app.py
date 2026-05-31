@@ -139,8 +139,9 @@ def classify_email():
         # Güvenli Gönderenler (Whitelist) Kontrolü
         # Resmi ve güvenilir sistem/ödeme e-postalarının oltalama olarak işaretlenmesini engeller.
         sender_clean = sender.lower() if sender else ""
-        trusted_domains = ["@google.com", "accounts.google.com", "@youtube.com", "@github.com", "@tebex.io", "@netflix.com", "@spotify.com", "@steampowered.com", "@playstation.com"]
+        trusted_domains = ["@google.com", "accounts.google.com", "@youtube.com", "@github.com", "@tebex.io", "@hytale.com", "@netflix.com", "@spotify.com", "@steampowered.com", "@playstation.com"]
         if any(domain in sender_clean for domain in trusted_domains):
+
             return jsonify({
                 'category': 'Normal',
                 'confidence': 1.0,
@@ -251,9 +252,10 @@ def classify_batch():
 
             # Whitelist check
             sender_clean = sender.lower() if sender else ""
-            trusted_domains = ["@google.com", "accounts.google.com", "@youtube.com", "@github.com", "@tebex.io", "@netflix.com", "@spotify.com", "@steampowered.com", "@playstation.com"]
+            trusted_domains = ["@google.com", "accounts.google.com", "@youtube.com", "@github.com", "@tebex.io", "@hytale.com", "@netflix.com", "@spotify.com", "@steampowered.com", "@playstation.com"]
             if any(domain in sender_clean for domain in trusted_domains):
                 category = 'Normal'
+
                 confidence = 1.0
 
             elif model is not None and vectorizer is not None:
