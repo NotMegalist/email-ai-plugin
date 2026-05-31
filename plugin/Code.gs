@@ -466,8 +466,19 @@ function onGmailMessageOpen(e) {
   const body = message.getPlainBody().substring(0, 1000);
   const sender = message.getFrom();
   
+  // Eklentinin kendi uyarı mesajı ise yapay zekaya gönderme, doğrudan bilgi kartı göster
+  if (subject.indexOf("⚠️ OLTALAMA TEHDİDİ TESPİT EDİLDİ") !== -1) {
+    const card = CardService.newCardBuilder();
+    card.setHeader(CardService.newCardHeader().setTitle("Sistem Güvenlik Bildirimi"));
+    const section = CardService.newCardSection()
+      .addWidget(CardService.newTextParagraph().setText("Bu e-posta, AI E-Posta Asistanı tarafından otomatik olarak gönderilmiş resmi bir güvenlik uyarı bildirimidir. Analiz edilmesine gerek yoktur."));
+    card.addSection(section);
+    return card.build();
+  }
+  
   // Yapay Zeka sorgusu yap (API'ye veya yerel kural motoruna sorar)
   const result = classifySingleEmail(subject, body, sender);
+
   
   const card = CardService.newCardBuilder();
   card.setHeader(CardService.newCardHeader()
