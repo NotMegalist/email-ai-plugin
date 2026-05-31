@@ -150,7 +150,9 @@ def classify_email():
         trusted_domains = [
             "@google.com", "accounts.google.com", 
             "proton.me", "protonmail.com", "protonmail.ch",
-            "quora.com", "github.com", "linkedin.com", "microsoft.com"
+            "quora.com", "github.com", "linkedin.com", "microsoft.com",
+            "discord.com", "discordapp.com", "spotify.com", "netflix.com",
+            "zoom.us", "steamcommunity.com", "steampowered.com"
         ]
         if any(domain in sender_clean for domain in trusted_domains):
 
@@ -344,7 +346,9 @@ def classify_batch():
             trusted_domains = [
                 "@google.com", "accounts.google.com", 
                 "proton.me", "protonmail.com", "protonmail.ch",
-                "quora.com", "github.com", "linkedin.com", "microsoft.com"
+                "quora.com", "github.com", "linkedin.com", "microsoft.com",
+                "discord.com", "discordapp.com", "spotify.com", "netflix.com",
+                "zoom.us", "steamcommunity.com", "steampowered.com"
             ]
             if any(domain in sender_clean for domain in trusted_domains):
                 category = 'Normal'
