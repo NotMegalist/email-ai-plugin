@@ -91,7 +91,10 @@ def load_and_combine_datasets() -> pd.DataFrame:
     df_phish['label'] = df_phish['type'].map({'Safe Email': 0, 'Phishing Email': 3}).fillna(0).astype(int)
     
     # Önemli E-posta tespiti (Safe Email olanlar arasından)
-    important_keywords = ['urgent', 'deadline', 'invoice', 'payment due', 'action required', 'important']
+    important_keywords = [
+        'urgent', 'deadline', 'invoice', 'meeting', 'payment due',
+        'action required', 'reminder', 'important', 'schedule', 'action', 'review'
+    ]
     
     def detect_important(text):
         if not isinstance(text, str):
@@ -116,8 +119,9 @@ def load_and_combine_datasets() -> pd.DataFrame:
     # Phishing Email olanlar içinden spam/reklam olanları seçici olarak relabel yap (label 3 -> 2)
     logger.info("Oltalama e-postalarındaki reklam/spam içerikleri ayıklanıyor...")
     spam_markers = [
-        'sale', 'discount', 'winner', 'prize', 'gift card', 'giftcard', 'viagra', 'lottery', 'promotional', 
-        'unsubscribe', 'advertisement', '50% off', 'special offer', 'free offer', 'make money', 'bonus'
+        'sale', 'discount', 'winner', 'prize', 'gift card', 'giftcard', 'viagra', 'valium', 'pills', 
+        'lottery', 'promotional', 'unsubscribe', 'advertisement', '50% off', 'special offer', 'click here to claim',
+        'free offer', 'make money', 'cash prize', 'bonus', 'shop online', 'cheap price'
     ]
     
     def check_spam_marker(text):

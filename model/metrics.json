@@ -1,54 +1,54 @@
 {
-    "accuracy": 0.8169,
-    "cv_mean": 0.8248,
+    "accuracy": 0.8202,
+    "cv_mean": 0.8279,
     "cv_std": 0.0108,
     "confusion_matrix": [
         [
-            1075,
-            421,
+            1078,
+            418,
             14,
             15
         ],
         [
-            194,
-            1322,
+            188,
+            1329,
             5,
-            4
+            3
         ],
         [
-            7,
-            15,
-            1361,
-            142
+            5,
+            17,
+            1371,
+            132
         ],
         [
             148,
-            9,
-            143,
+            10,
+            142,
             1225
         ]
     ],
     "classification_report": {
         "Normal": {
-            "precision": 0.75,
-            "recall": 0.7,
+            "precision": 0.76,
+            "recall": 0.71,
             "f1-score": 0.73,
             "support": 1525.0
         },
         "Önemli": {
             "precision": 0.75,
             "recall": 0.87,
-            "f1-score": 0.8,
+            "f1-score": 0.81,
             "support": 1525.0
         },
         "Spam": {
             "precision": 0.89,
-            "recall": 0.89,
-            "f1-score": 0.89,
+            "recall": 0.9,
+            "f1-score": 0.9,
             "support": 1525.0
         },
         "Oltalama": {
-            "precision": 0.88,
+            "precision": 0.89,
             "recall": 0.8,
             "f1-score": 0.84,
             "support": 1525.0
