@@ -1,7 +1,28 @@
-# Yapay Zeka Destekli Gmail E-Posta Kategorilendirme Eklentisi
+# 🎓 Yapay Zeka Destekli E-Posta Sınıflandırma ve Güvenlik Asistanı
+
+> **Tez / Bitirme Projesi Teslim ve Değerlendirme Kılavuzu**
+> 
+> * **Öğrenci:** Ahmet Sarp Kaya (20240108017)
+> * **Danışman:** Prof. Dr. İbrahim Soğukpınar
+> * **Kurum:** Piri Reis Üniversitesi - Bilgisayar Mühendisliği Bölümü - 2026
+> * **Canlı API Sunucusu:** https://email-ai-plugin.onrender.com (Aktif)
+> * **Kod Deposu:** https://github.com/NotMegalist/email-ai-plugin
+
+---
+
+## ⚡ Hızlı Değerlendirme (Kurulumsuz Canlı Test)
+
+Jüri üyelerinin projeyi kendi bilgisayarlarına hiçbir Python/pip kurulumu **yapmadan** anında test edebilmeleri için projeye interaktif bir test arayüzü eklenmiştir:
+
+1. Bu teslim klasörünün içerisindeki **`demo.html`** dosyasına çift tıklayarak tarayıcınızda açın.
+2. Sayfadaki hazır örnek butonlarına (**Normal E-posta, Önemli E-posta, Spam E-posta, Oltalama E-posta**) tıklayarak hazır şablonları yükleyin.
+3. **"Sınıflandır"** butonuna basarak, canlı sunucuda (Render.com) çalışan yapay zeka modelinin tahmin sonucunu, güven skorunu ve detaylı olasılık dağılım barlarını anında inceleyin.
+4. İsterseniz Konu ve Gövde alanlarına kendi belirlediğiniz özel e-posta metinlerini yazarak yapay zekanın tahmin başarısını test edebilirsiniz.
+
+---
 
 ## Proje Özeti
-Gmail'e entegre çalışan, yapay zeka destekli e-posta kategorilendirme eklentisi.
+Gmail'e entegre çalışan, yapay zeka destekli e-posta sınıflandırma eklentisi.
 E-postaları **Normal**, **Önemli**, **Spam** ve **Oltalama (Phishing)** olmak üzere 4 kategoriye ayırır.
 
 ## Proje Yapısı
