@@ -503,9 +503,18 @@
   <div class="header-badge">🤖 Canlı Demo</div>
   <h1>Yapay Zeka Destekli <span class="gradient">E-Posta Sınıflandırma</span></h1>
   <p>E-posta metnini girin veya hazır örneklerden seçin — yapay zeka modeli canlı sunucu üzerinden gerçek zamanlı olarak sınıflandıracaktır.</p>
-  <div class="status-bar">
-    <div class="status-dot" id="statusDot"></div>
-    <span class="status-text" id="statusText">Sunucu kontrol ediliyor...</span>
+  <div class="status-bar" style="display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; margin-top: 12px; margin-bottom: 4px;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <div class="status-dot" id="statusDot"></div>
+      <span class="status-text" id="statusText">Sunucu kontrol ediliyor...</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 4px 10px;">
+      <label for="apiSelect" style="margin: 0; font-size: 11px; text-transform: none; letter-spacing: 0; font-weight: 500;">Bağlantı:</label>
+      <select id="apiSelect" onchange="changeApiUrl()" style="background: transparent; border: none; color: #b0bec5; font-family: 'Inter', sans-serif; font-size: 11px; outline: none; cursor: pointer; padding: 0 4px; font-weight: 600;">
+        <option value="https://email-ai-plugin.onrender.com" style="background: #1e293b; color: #e2e8f0;">☁️ Canlı Bulut (Render.com)</option>
+        <option value="http://localhost:5000" style="background: #1e293b; color: #e2e8f0;">💻 Yerel Sunucu (Localhost:5000)</option>
+      </select>
+    </div>
   </div>
 </div>
 
@@ -669,7 +678,18 @@
 </div>
 
 <script>
-  const API_URL = "https://email-ai-plugin.onrender.com";
+  let API_URL = "https://email-ai-plugin.onrender.com";
+
+  function changeApiUrl() {
+    API_URL = document.getElementById('apiSelect').value;
+    const banner = document.getElementById('warningBanner');
+    if (API_URL.includes('localhost')) {
+      banner.querySelector('.warning-content').innerHTML = '⚠️ Yerel sunucuya bağlanmaya çalışılıyor. Lütfen <code>install_and_run.bat</code> dosyasını çalıştırdığınızdan emin olun.';
+    } else {
+      banner.querySelector('.warning-content').innerHTML = '⚠️ Sunucu şu an uyku modunda olabilir. İlk istek 20-30 saniye sürebilir — bu normaldir. Lütfen bekleyin.';
+    }
+    checkHealth();
+  }
 
   // ---- Examples ----
   const examples = {
