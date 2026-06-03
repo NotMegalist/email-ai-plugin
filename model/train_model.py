@@ -114,11 +114,49 @@ def load_and_combine_datasets() -> pd.DataFrame:
     df_spam_only = df_spam[df_spam['type'] == 'spam'].copy()
     df_spam_only['label'] = 2  # Spam
     
-    # 4. Birleştir
-    logger.info("Veri kümeleri birleştiriliyor...")
-    df_combined = pd.concat([
-        df_phish[['text', 'label']],
+    # Phishing Email olanlar içinden spam/reklam olanları seçici olarak relabel yap (label 3 -> 2)
+    logger.info("Oltalama e-postalarındaki reklam/spam içerikleri ayıklanıyor...")
+    spam_markers = [
+        'sale', 'discount', 'winner', 'prize', 'gift card', 'giftcard', 'viagra', 'valium', 'pills', 
+        'lottery', 'promotional', 'unsubscribe', 'advertisement', '50% off', 'special offer', 'click here to claim',
+        'free offer', 'make money', 'cash prize', 'bonus', 'shop online', 'cheap price'
+    ]
+    
+    def check_spam_marker(text):
+        if not isinstance(text, str):
+            return False
+        text_lower = text.lower()
+        return any(marker in text_lower for marker in spam_markers)
+        
+    phish_rows = df_phish['label'] == 3
+    has_spam_marker = df_phish.loc[phish_rows, 'text'].apply(check_spam_marker)
+    df_phish.loc[phish_rows & has_spam_marker, 'label'] = 2
+    
+    # 4. Birleştir ve Sınıfları Dengele (Oversampling)
+    logger.info("Sınıflar dengeleniyor (Oversampling)...")
+    df_normal = df_phish[df_phish['label'] == 0][['text', 'label']]
+    df_important = df_phish[df_phish['label'] == 1][['text', 'label']]
+    
+    # Spam sınıfı: hem Phishing_Email'den ayıklanan spam'ler hem de spam_sms'tekiler
+    df_spam_all = pd.concat([
+        df_phish[df_phish['label'] == 2][['text', 'label']],
         df_spam_only[['text', 'label']]
+    ], ignore_index=True)
+    
+    df_phishing = df_phish[df_phish['label'] == 3][['text', 'label']]
+    
+    # Hedef boyut (Normal sınıfının boyutu)
+    target_size = len(df_normal)
+    
+    df_important_balanced = df_important.sample(n=target_size, replace=True, random_state=42)
+    df_spam_balanced = df_spam_all.sample(n=target_size, replace=True, random_state=42)
+    df_phishing_balanced = df_phishing.sample(n=target_size, replace=True, random_state=42)
+    
+    df_combined = pd.concat([
+        df_normal,
+        df_important_balanced,
+        df_spam_balanced,
+        df_phishing_balanced
     ], ignore_index=True)
     
     category_names = {0: 'Normal', 1: 'Önemli', 2: 'Spam', 3: 'Oltalama'}

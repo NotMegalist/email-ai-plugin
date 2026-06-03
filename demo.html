@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yapay Zeka Destekli E-Posta Sınıflandırma — Canlı Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0a0a1a;
+    color: #e0e6f0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: 
+      radial-gradient(ellipse at 20% 50%, rgba(108, 99, 255, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(62, 207, 207, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(255, 107, 107, 0.04) 0%, transparent 50%);
+    z-index: -1;
+    animation: bgPulse 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes bgPulse {
+    0% { opacity: 0.7; }
+    100% { opacity: 1; }
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 40px 20px 10px;
+  }
+
+  .header-badge {
+    display: inline-block;
+    background: rgba(108, 99, 255, 0.15);
+    border: 1px solid rgba(108, 99, 255, 0.3);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #8b83ff;
+    margin-bottom: 16px;
+  }
+
+  .header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .header h1 .gradient {
+    background: linear-gradient(135deg, #6c63ff, #3ecfcf);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header p {
+    color: #7a8899;
+    font-size: 14px;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Status Bar */
+  .status-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    align-items: center;
+    margin: 16px auto 0;
+    font-size: 12px;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #888;
+    animation: nonePulse 2s infinite;
+  }
+
+  .status-dot.online {
+    background: #4ade80;
+    animation: dotPulse 2s infinite;
+  }
+
+  .status-dot.offline {
+    background: #f87171;
+    animation: none;
+  }
+
+  @keyframes dotPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+  }
+
+  .status-text { color: #7a8899; }
+  .status-text.online { color: #4ade80; }
+  .status-text.offline { color: #f87171; }
+
+  /* Main Container */
+  .container {
+    max-width: 960px;
+    margin: 24px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .container { grid-template-columns: 1fr; }
+  }
+
+  /* Panels */
+  .panel {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 24px;
+    backdrop-filter: blur(10px);
+  }
+
+  .panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #b0bec5;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-title .icon { font-size: 18px; }
+
+  /* Form */
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #8892a4;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  input[type="text"], input[type="email"], textarea {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #e0e6f0;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    margin-bottom: 14px;
+  }
+
+  input:focus, textarea:focus {
+    border-color: rgba(108, 99, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 130px;
+    line-height: 1.6;
+  }
+
+  /* Buttons */
+  .btn-classify {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #6c63ff, #5a52e0);
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .btn-classify:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(108, 99, 255, 0.35);
+  }
+
+  .btn-classify:active {
+    transform: translateY(0);
+  }
+
+  .btn-classify:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-classify .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: none;
+  }
+
+  .btn-classify.loading .spinner { display: block; }
+  .btn-classify.loading .btn-text { display: none; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Example buttons */
+  .examples-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .btn-example {
+    padding: 10px 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    color: #b0bec5;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .btn-example:hover {
+    background: rgba(108, 99, 255, 0.1);
+    border-color: rgba(108, 99, 255, 0.3);
+    color: #e0e6f0;
+    transform: translateY(-1px);
+  }
+
+  .btn-example .emoji { font-size: 16px; display: block; margin-bottom: 4px; }
+
+  /* Results */
+  .result-area {
+    display: none;
+  }
+
+  .result-area.visible { display: block; }
+
+  .result-card {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    animation: fadeInUp 0.5s ease;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Category Badge */
+  .category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 14px;
+  }
+
+  .category-badge.normal {
+    background: rgba(74, 222, 128, 0.12);
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.25);
+  }
+  .category-badge.onemli {
+    background: rgba(251, 191, 36, 0.12);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.25);
+  }
+  .category-badge.spam {
+    background: rgba(251, 146, 60, 0.12);
+    color: #fb923c;
+    border: 1px solid rgba(251, 146, 60, 0.25);
+  }
+  .category-badge.oltalama {
+    background: rgba(248, 113, 113, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.25);
+  }
+
+  .category-badge .cat-icon { font-size: 22px; }
+
+  /* Confidence Bar */
+  .confidence-section { margin-bottom: 16px; }
+
+  .confidence-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #7a8899;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .confidence-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .confidence-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s cubic-bezier(.4,0,.2,1);
+    background: linear-gradient(90deg, #6c63ff, #3ecfcf);
+  }
+
+  /* Probability Bars */
+  .prob-grid { display: grid; gap: 10px; }
+
+  .prob-item {
+    display: grid;
+    grid-template-columns: 80px 1fr 50px;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .prob-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #b0bec5;
+  }
+
+  .prob-bar-bg {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .prob-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s cubic-bezier(.4,0,.2,1);
+  }
+
+  .prob-bar-fill.normal { background: #4ade80; }
+  .prob-bar-fill.onemli { background: #fbbf24; }
+  .prob-bar-fill.spam { background: #fb923c; }
+  .prob-bar-fill.oltalama { background: #f87171; }
+
+  .prob-value {
+    font-size: 12px;
+    font-weight: 700;
+    color: #8892a4;
+    text-align: right;
+  }
+
+  /* Method & Response Time */
+  .meta-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  .meta-tag {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #7a8899;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .meta-tag strong { color: #b0bec5; }
+
+  /* Error */
+  .error-box {
+    background: rgba(248, 113, 113, 0.08);
+    border: 1px solid rgba(248, 113, 113, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    color: #f87171;
+    font-size: 13px;
+    line-height: 1.6;
+    animation: fadeInUp 0.5s ease;
+  }
+
+  .error-box strong { display: block; margin-bottom: 4px; }
+
+  /* Warning Banner */
+  .warning-banner {
+    display: none;
+    max-width: 960px;
+    margin: 0 auto 12px;
+    padding: 0 20px;
+  }
+
+  .warning-banner.visible { display: block; }
+
+  .warning-content {
+    background: rgba(248, 113, 113, 0.08);
+    border: 1px solid rgba(248, 113, 113, 0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: #f87171;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 24px 20px 32px;
+    color: #4a5568;
+    font-size: 11px;
+    line-height: 1.8;
+  }
+
+  .footer a {
+    color: #6c63ff;
+    text-decoration: none;
+  }
+
+  .footer a:hover { text-decoration: underline; }
+
+  /* Info section */
+  .info-section {
+    max-width: 960px;
+    margin: 0 auto 20px;
+    padding: 0 20px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  @media (max-width: 768px) {
+    .info-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .info-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+
+  .info-card:hover { transform: translateY(-2px); }
+
+  .info-card .info-icon { font-size: 24px; margin-bottom: 6px; }
+  .info-card .info-label { font-size: 10px; color: #7a8899; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+  .info-card .info-value { font-size: 14px; font-weight: 700; color: #e0e6f0; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-badge">🤖 Canlı Demo</div>
+  <h1>Yapay Zeka Destekli <span class="gradient">E-Posta Sınıflandırma</span></h1>
+  <p>E-posta metnini girin veya hazır örneklerden seçin — yapay zeka modeli canlı sunucu üzerinden gerçek zamanlı olarak sınıflandıracaktır.</p>
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-text" id="statusText">Sunucu kontrol ediliyor...</span>
+  </div>
+</div>
+
+<!-- Warning Banner (if server is down) -->
+<div class="warning-banner" id="warningBanner">
+  <div class="warning-content">
+    ⚠️ Sunucu şu an uyku modunda olabilir. İlk istek 20-30 saniye sürebilir — bu normaldir. Lütfen bekleyin.
+  </div>
+</div>
+
+<!-- Info Cards -->
+<div class="info-section">
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-icon">🧠</div>
+      <div class="info-label">Model</div>
+      <div class="info-value">Naive Bayes</div>
+    </div>
+    <div class="info-card">
+      <div class="info-icon">📊</div>
+      <div class="info-label">Doğruluk</div>
+      <div class="info-value">%92.31</div>
+    </div>
+    <div class="info-card">
+      <div class="info-icon">📧</div>
+      <div class="info-label">Eğitim Verisi</div>
+      <div class="info-value">19,381</div>
+    </div>
+    <div class="info-card">
+      <div class="info-icon">🏷️</div>
+      <div class="info-label">Kategori</div>
+      <div class="info-value">4 Sınıf</div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Grid -->
+<div class="container">
+  
+  <!-- Left: Input Panel -->
+  <div class="panel">
+    <div class="panel-title"><span class="icon">✉️</span> E-Posta Girişi</div>
+
+    <!-- Example buttons -->
+    <label>Hazır Örnekler</label>
+    <div class="examples-row">
+      <button class="btn-example" onclick="loadExample('normal')">
+        <span class="emoji">✅</span> Normal E-posta
+      </button>
+      <button class="btn-example" onclick="loadExample('onemli')">
+        <span class="emoji">⭐</span> Önemli E-posta
+      </button>
+      <button class="btn-example" onclick="loadExample('spam')">
+        <span class="emoji">📢</span> Spam E-posta
+      </button>
+      <button class="btn-example" onclick="loadExample('oltalama')">
+        <span class="emoji">🎣</span> Oltalama E-posta
+      </button>
+    </div>
+
+    <label for="sender">Gönderen (opsiyonel)</label>
+    <input type="email" id="sender" placeholder="ornek@email.com">
+
+    <label for="subject">Konu</label>
+    <input type="text" id="subject" placeholder="E-posta konu başlığı...">
+
+    <label for="body">İçerik</label>
+    <textarea id="body" placeholder="E-posta içeriğini buraya yazın veya yapıştırın..."></textarea>
+
+    <button class="btn-classify" id="classifyBtn" onclick="classifyEmail()">
+      <div class="spinner"></div>
+      <span class="btn-text">🔍 Sınıflandır</span>
+    </button>
+  </div>
+
+  <!-- Right: Results Panel -->
+  <div class="panel">
+    <div class="panel-title"><span class="icon">📊</span> Sınıflandırma Sonucu</div>
+
+    <!-- Placeholder -->
+    <div id="placeholder" style="text-align:center; padding: 60px 20px; color: #4a5568;">
+      <div style="font-size: 48px; margin-bottom: 12px; opacity: 0.5;">🔬</div>
+      <p style="font-size: 13px; line-height: 1.6;">Bir e-posta girin veya hazır örneklerden seçin,<br>yapay zeka sonucu burada görünecektir.</p>
+    </div>
+
+    <!-- Result -->
+    <div class="result-area" id="resultArea">
+      <div class="result-card">
+        <div class="category-badge" id="categoryBadge">
+          <span class="cat-icon" id="catIcon"></span>
+          <span id="catName"></span>
+        </div>
+
+        <div class="confidence-section">
+          <div class="confidence-label">
+            <span>Güven Skoru</span>
+            <span id="confValue">—</span>
+          </div>
+          <div class="confidence-bar-bg">
+            <div class="confidence-bar-fill" id="confBar" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Olasılık Dağılım Barları -->
+        <div style="margin-bottom:16px;">
+          <div class="confidence-label" style="margin-bottom: 8px;">Kategori Olasılık Dağılımı</div>
+          <div class="prob-grid">
+            <div class="prob-item">
+              <span class="prob-name">Normal</span>
+              <div class="prob-bar-bg">
+                <div class="prob-bar-fill normal" id="probNormal" style="width: 0%"></div>
+              </div>
+              <span class="prob-value" id="valNormal">0%</span>
+            </div>
+            <div class="prob-item">
+              <span class="prob-name">Önemli</span>
+              <div class="prob-bar-bg">
+                <div class="prob-bar-fill onemli" id="probOnemli" style="width: 0%"></div>
+              </div>
+              <span class="prob-value" id="valOnemli">0%</span>
+            </div>
+            <div class="prob-item">
+              <span class="prob-name">Spam</span>
+              <div class="prob-bar-bg">
+                <div class="prob-bar-fill spam" id="probSpam" style="width: 0%"></div>
+              </div>
+              <span class="prob-value" id="valSpam">0%</span>
+            </div>
+            <div class="prob-item">
+              <span class="prob-name">Oltalama</span>
+              <div class="prob-bar-bg">
+                <div class="prob-bar-fill oltalama" id="probOltalama" style="width: 0%"></div>
+              </div>
+              <span class="prob-value" id="valOltalama">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="catDescription" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px; margin-bottom:14px; font-size:13px; color:#8892a4; line-height:1.7;"></div>
+
+        <div class="meta-tags" id="metaTags">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div id="errorArea" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <strong>Yapay Zeka Destekli Kişisel E-Posta Asistanı</strong><br>
+  Ahmet Sarp Kaya — 20240108017 | Danışman: Prof. Dr. İbrahim Soğukpınar<br>
+  Piri Reis Üniversitesi — Bilgisayar Mühendisliği Bölümü — 2026<br>
+  <br>
+  API Adresi: <a href="https://email-ai-plugin.onrender.com/health" target="_blank">https://email-ai-plugin.onrender.com</a>
+  &nbsp;|&nbsp;
+  Kaynak Kod: <a href="https://github.com/NotMegalist/email-ai-plugin" target="_blank">GitHub</a>
+</div>
+
+<script>
+  const API_URL = "https://email-ai-plugin.onrender.com";
+
+  // ---- Examples ----
+  const examples = {
+    normal: {
+      sender: "sarah.jones@gmail.com",
+      subject: "Re: Photos from last weekend",
+      body: "Hey Mike,\n\nThanks for sharing the photos from the BBQ! They turned out really great, especially the ones by the pool. Everyone looked like they were having such a good time.\n\nI uploaded a few more to the shared album on Google Photos. Let me know what you think!\n\nHope you had a safe drive home. Talk soon,\nSarah"
+    },
+    onemli: {
+      sender: "manager@company.com",
+      subject: "URGENT: Project deadline moved to Friday",
+      body: "Dear Team,\n\nPlease be informed that the client has moved the project deadline to this Friday. We need to finalize all deliverables by end of day Thursday for review.\n\nAction required: Please update your task status in the project tracker by tomorrow morning. We will have an emergency meeting at 2 PM to discuss the revised schedule.\n\nThis is a high-priority item. If you have any blockers, report them immediately.\n\nRegards,\nProject Manager"
+    },
+    spam: {
+      sender: "offers@best-deals-shop.com",
+      subject: "50% OFF Everything - Summer Sale Ends Tonight!",
+      body: "HUGE SUMMER SALE!\n\nGet 50% off all clothing, shoes and accessories! New arrivals added daily.\n\nFree shipping on all orders over $50. Use code SUMMER50 at checkout.\n\nShop our top picks:\n- Designer sunglasses from $19.99\n- Premium sneakers from $29.99\n- Luxury handbags from $49.99\n\nDon't miss out on these incredible savings! Sale ends at midnight.\n\nYou are receiving this email because you subscribed to our newsletter.\nTo unsubscribe from future promotional emails, reply with STOP."
+    },
+    oltalama: {
+      sender: "security-alert@acc0unts-verify.com",
+      subject: "Security Alert: Your account has been suspended",
+      body: "Dear User,\n\nWe detected suspicious activity on your account. Your account has been temporarily suspended for security reasons.\n\nTo restore access, you must verify your identity immediately by clicking the link below:\n\nhttps://secure-login-verify.suspicious-site.com/restore\n\nPlease update your password and verify your credit card information within 24 hours, or your account will be permanently deleted.\n\nSecurity Team\nAccount Protection Department"
+    }
+  };
+
+  function loadExample(type) {
+    const ex = examples[type];
+    document.getElementById('sender').value = ex.sender;
+    document.getElementById('subject').value = ex.subject;
+    document.getElementById('body').value = ex.body;
+
+    // Visual feedback
+    const btns = document.querySelectorAll('.btn-example');
+    btns.forEach(b => b.style.borderColor = 'rgba(255,255,255,0.08)');
+    event.currentTarget.style.borderColor = 'rgba(108, 99, 255, 0.5)';
+  }
+
+  // ---- Health Check ----
+  async function checkHealth() {
+    const dot = document.getElementById('statusDot');
+    const txt = document.getElementById('statusText');
+    const banner = document.getElementById('warningBanner');
+    try {
+      const res = await fetch(API_URL + '/health', { signal: AbortSignal.timeout(10000) });
+      const data = await res.json();
+      if (data.status === 'ok' && data.model_loaded) {
+        dot.className = 'status-dot online';
+        txt.className = 'status-text online';
+        txt.textContent = 'Sunucu çalışıyor — Model yüklü';
+        banner.classList.remove('visible');
+      } else {
+        dot.className = 'status-dot online';
+        txt.className = 'status-text online';
+        txt.textContent = 'Sunucu çalışıyor — Model yüklenmemiş';
+        banner.classList.add('visible');
+      }
+    } catch (e) {
+      dot.className = 'status-dot offline';
+      txt.className = 'status-text offline';
+      txt.textContent = 'Sunucu ulaşılamıyor — uyku modunda olabilir';
+      banner.classList.add('visible');
+    }
+  }
+
+  checkHealth();
+  setInterval(checkHealth, 30000);
+
+  // ---- Category config ----
+  const catConfig = {
+    'Normal':   { icon: '✅', cls: 'normal',   color: '#4ade80' },
+    'Önemli':   { icon: '⭐', cls: 'onemli',   color: '#fbbf24' },
+    'Spam':     { icon: '📢', cls: 'spam',     color: '#fb923c' },
+    'Oltalama': { icon: '🎣', cls: 'oltalama', color: '#f87171' }
+  };
+
+  // ---- Classify ----
+  async function classifyEmail() {
+    const subject = document.getElementById('subject').value.trim();
+    const body = document.getElementById('body').value.trim();
+    const sender = document.getElementById('sender').value.trim();
+    const btn = document.getElementById('classifyBtn');
+    const placeholder = document.getElementById('placeholder');
+    const resultArea = document.getElementById('resultArea');
+    const errorArea = document.getElementById('errorArea');
+
+    if (!subject && !body) {
+      alert('Lütfen en az bir konu veya içerik girin.');
+      return;
+    }
+
+    // Loading state
+    btn.classList.add('loading');
+    btn.disabled = true;
+    resultArea.classList.remove('visible');
+    errorArea.style.display = 'none';
+    placeholder.style.display = 'none';
+
+    const startTime = performance.now();
+
+    try {
+      const res = await fetch(API_URL + '/classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject, body, sender })
+      });
+
+      const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+
+      const data = await res.json();
+      showResult(data, elapsed);
+
+      // Server came alive
+      const dot = document.getElementById('statusDot');
+      const txt = document.getElementById('statusText');
+      dot.className = 'status-dot online';
+      txt.className = 'status-text online';
+      txt.textContent = 'Sunucu çalışıyor — Model yüklü';
+      document.getElementById('warningBanner').classList.remove('visible');
+
+    } catch (err) {
+      errorArea.style.display = 'block';
+      errorArea.innerHTML = `
+        <div class="error-box">
+          <strong>❌ Bağlantı Hatası</strong>
+          ${err.message}<br><br>
+          Sunucu uyku modunda olabilir. 20-30 saniye bekleyip tekrar deneyin.<br>
+          API Adresi: <a href="${API_URL}/health" target="_blank" style="color:#f87171">${API_URL}/health</a>
+        </div>
+      `;
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  }
+
+  // Category descriptions
+  const catDescriptions = {
+    'Normal': 'Bu e-posta günlük rutin bir yazışmadır. Herhangi bir aciliyet, tehdit veya ticari promosyon içeriği tespit edilmemiştir.',
+    'Önemli': 'Bu e-posta acil eylem veya dikkat gerektiren önemli bir içerik taşımaktadır. Toplantı, fatura, son tarih veya iş öncelikli konular tespit edilmiştir.',
+    'Spam': 'Bu e-posta istenmeyen ticari reklam veya promosyon içeriği taşımaktadır. Zararsızdır ancak gelen kutusunu gereksiz yere meşgul eder.',
+    'Oltalama': '⚠️ Bu e-posta potansiyel bir kimlik avı (phishing) girişimi olarak tespit edilmiştir. Kişisel bilgi, şifre veya finansal veri çalmayı amaçlayan şüpheli kalıplar içermektedir.'
+  };
+
+  function showResult(data, elapsed) {
+    const resultArea = document.getElementById('resultArea');
+    const category = data.category || 'Normal';
+    const confidence = data.confidence || 0;
+    const method = data.method || 'ml_model';
+    const config = catConfig[category] || catConfig['Normal'];
+
+    // Category badge
+    const badge = document.getElementById('categoryBadge');
+    badge.className = 'category-badge ' + config.cls;
+    document.getElementById('catIcon').textContent = config.icon;
+    document.getElementById('catName').textContent = category;
+
+    // Confidence bar
+    const confPct = (confidence * 100).toFixed(1);
+    document.getElementById('confValue').textContent = '%' + confPct;
+    setTimeout(() => {
+      document.getElementById('confBar').style.width = confPct + '%';
+    }, 100);
+
+    // Probability bars
+    const probs = (data.details && data.details.all_probabilities) ? data.details.all_probabilities : {
+      'Normal': category === 'Normal' ? confidence : 0.0,
+      'Önemli': category === 'Önemli' ? confidence : 0.0,
+      'Spam': category === 'Spam' ? confidence : 0.0,
+      'Oltalama': category === 'Oltalama' ? confidence : 0.0
+    };
+    
+    const normalPct = (probs['Normal'] * 100).toFixed(1);
+    const onemliPct = (probs['Önemli'] * 100).toFixed(1);
+    const spamPct = (probs['Spam'] * 100).toFixed(1);
+    const oltalamaPct = (probs['Oltalama'] * 100).toFixed(1);
+    
+    document.getElementById('valNormal').textContent = '%' + normalPct;
+    document.getElementById('valOnemli').textContent = '%' + onemliPct;
+    document.getElementById('valSpam').textContent = '%' + spamPct;
+    document.getElementById('valOltalama').textContent = '%' + oltalamaPct;
+    
+    setTimeout(() => {
+      document.getElementById('probNormal').style.width = normalPct + '%';
+      document.getElementById('probOnemli').style.width = onemliPct + '%';
+      document.getElementById('probSpam').style.width = spamPct + '%';
+      document.getElementById('probOltalama').style.width = oltalamaPct + '%';
+    }, 150);
+
+    // Category description
+    document.getElementById('catDescription').innerHTML = catDescriptions[category] || '';
+
+    // Meta tags
+    const methodLabels = {
+      'ml_model': '🧠 Makine Öğrenmesi',
+      'rule_based': '📐 Kural Tabanlı',
+      'whitelist': '🛡️ Güvenli Liste',
+      'ml_with_rule_override': '🧠+📐 Hibrit'
+    };
+    
+    const metaTags = document.getElementById('metaTags');
+    metaTags.innerHTML = `
+      <span class="meta-tag"><strong>Yöntem:</strong> ${methodLabels[method] || method}</span>
+      <span class="meta-tag"><strong>Süre:</strong> ${elapsed} sn</span>
+    `;
+
+    if (data.warning) {
+      metaTags.innerHTML += `<span class="meta-tag" style="color:#fbbf24;border-color:rgba(251,191,36,0.2)">⚠️ ${data.warning}</span>`;
+    }
+
+    resultArea.classList.add('visible');
+  }
+
+  // Allow Ctrl+Enter to classify
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      classifyEmail();
+    }
+  });
+</script>
+
+</body>
+</html>

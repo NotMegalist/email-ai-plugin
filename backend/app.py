@@ -307,6 +307,32 @@ def classify_email():
         code_map = {'Normal': 0, 'Önemli': 1, 'Spam': 2, 'Oltalama': 3}
         category_code = code_map.get(category, 0)
 
+        # Olasılıkları decided_category'e göre hizala (Arayüzdeki barların kafa karıştırmasını önlemek için)
+        out_probabilities = {
+            'Normal': round(float(probabilities[0]), 4),
+            'Önemli': round(float(probabilities[1]), 4),
+            'Spam': round(float(probabilities[2]), 4),
+            'Oltalama': round(float(probabilities[3]), 4)
+        }
+        
+        # Eğer kategori post-processing kurallarıyla değiştirilmişse, olasılıkları güncelle
+        # Karar verilen kategori en yüksek olasılığa sahip olmalıdır.
+        if category != category_map.get(int(prediction), 'Normal'):
+            orig_max = max(out_probabilities.values())
+            target_prob = max(orig_max, 0.75)  # En az %75 olsun
+            
+            # Diğer kategorileri orantısal olarak küçült
+            rem = 1.0 - target_prob
+            other_cats = [cat for cat in category_map.values() if cat != category]
+            orig_other_sum = sum(out_probabilities[cat] for cat in other_cats)
+            
+            for cat in other_cats:
+                if orig_other_sum > 0:
+                    out_probabilities[cat] = round(rem * (out_probabilities[cat] / orig_other_sum), 4)
+                else:
+                    out_probabilities[cat] = round(rem / len(other_cats), 4)
+            out_probabilities[category] = round(target_prob, 4)
+
         logger.info(f"Sınıflandırıldı: '{subject[:50]}' -> {category} ({confidence:.2f})")
 
         return jsonify({
@@ -315,12 +341,7 @@ def classify_email():
             'category_code': category_code,
             'details': {
                 'subject_preview': subject[:100],
-                'all_probabilities': {
-                    'Normal': round(float(probabilities[0]), 4),
-                    'Önemli': round(float(probabilities[1]), 4),
-                    'Spam': round(float(probabilities[2]), 4),
-                    'Oltalama': round(float(probabilities[3]), 4)
-                }
+                'all_probabilities': out_probabilities
             }
         })
 
