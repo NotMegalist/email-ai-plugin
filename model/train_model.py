@@ -91,8 +91,7 @@ def load_and_combine_datasets() -> pd.DataFrame:
     df_phish['label'] = df_phish['type'].map({'Safe Email': 0, 'Phishing Email': 3}).fillna(0).astype(int)
     
     # Önemli E-posta tespiti (Safe Email olanlar arasından)
-    important_keywords = ['urgent', 'deadline', 'invoice', 'meeting', 'payment due',
-                           'action required', 'reminder', 'important', 'schedule', 'action', 'review']
+    important_keywords = ['urgent', 'deadline', 'invoice', 'payment due', 'action required', 'important']
     
     def detect_important(text):
         if not isinstance(text, str):
@@ -117,9 +116,8 @@ def load_and_combine_datasets() -> pd.DataFrame:
     # Phishing Email olanlar içinden spam/reklam olanları seçici olarak relabel yap (label 3 -> 2)
     logger.info("Oltalama e-postalarındaki reklam/spam içerikleri ayıklanıyor...")
     spam_markers = [
-        'sale', 'discount', 'winner', 'prize', 'gift card', 'giftcard', 'viagra', 'valium', 'pills', 
-        'lottery', 'promotional', 'unsubscribe', 'advertisement', '50% off', 'special offer', 'click here to claim',
-        'free offer', 'make money', 'cash prize', 'bonus', 'shop online', 'cheap price'
+        'sale', 'discount', 'winner', 'prize', 'gift card', 'giftcard', 'viagra', 'lottery', 'promotional', 
+        'unsubscribe', 'advertisement', '50% off', 'special offer', 'free offer', 'make money', 'bonus'
     ]
     
     def check_spam_marker(text):
@@ -202,7 +200,7 @@ def train_and_evaluate(df: pd.DataFrame) -> None:
     
     # Multinomial Naive Bayes modeli
     logger.info("Multinomial Naive Bayes modeli eğitiliyor...")
-    model = MultinomialNB(alpha=0.1)
+    model = MultinomialNB(alpha=0.05)
     model.fit(X_train_tfidf, y_train)
     
     # Test değerlendirmesi
