@@ -10,14 +10,22 @@
 
 ---
 
-## ⚡ Hızlı Değerlendirme (Kurulumsuz Canlı Test)
+## ⚡ Jüri Değerlendirme Seçenekleri (Test Kılavuzu)
 
-Jüri üyelerinin projeyi kendi bilgisayarlarına hiçbir Python/pip kurulumu **yapmadan** anında test edebilmeleri için projeye interaktif bir test arayüzü eklenmiştir:
+Projeyi test edebilmeniz için iki farklı esnek seçenek sunulmuştur:
 
-1. Bu teslim klasörünün içerisindeki **`demo.html`** dosyasına çift tıklayarak tarayıcınızda açın.
-2. Sayfadaki hazır örnek butonlarına (**Normal E-posta, Önemli E-posta, Spam E-posta, Oltalama E-posta**) tıklayarak hazır şablonları yükleyin.
-3. **"Sınıflandır"** butonuna basarak, canlı sunucuda (Render.com) çalışan yapay zeka modelinin tahmin sonucunu, güven skorunu ve detaylı olasılık dağılım barlarını anında inceleyin.
-4. İsterseniz Konu ve Gövde alanlarına kendi belirlediğiniz özel e-posta metinlerini yazarak yapay zekanın tahmin başarısını test edebilirsiniz.
+### Seçenek A: Kurulumsuz Canlı Test (Önerilen)
+Bilgisayarınıza hiçbir Python, kütüphane veya paket kurulumu **yapmadan** eklentinin yapay zekasını test edebilirsiniz:
+1. Teslim klasörü içerisindeki **`demo.html`** dosyasına çift tıklayarak tarayıcınızda açın.
+2. Üst durum çubuğundaki **Bağlantı** seçeneğinin `☁️ Canlı Bulut (Render.com)` olarak seçildiğinden emin olun (varsayılan ayarlıdır).
+3. Hazır örnek butonlarına (**Normal, Önemli, Spam, Oltalama**) tıklayarak metin şablonlarını yükleyin ve **"Sınıflandır"** butonuna basın. Sonuçlar Render bulut sunucumuz üzerinden anında döndürülecektir.
+
+### Seçenek B: Yerel (Lokal) Sunucu Testi
+Projeyi tamamen kendi bilgisayarınızda yerel olarak çalıştırıp test etmek isterseniz:
+1. Projenin kök dizininde bulunan **`install_and_run.bat`** dosyasına çift tıklayın. Betik otomatik olarak yerel sanal ortamı (`venv`) kuracak, bağımlılıkları yükleyecek ve yerel Flask API sunucusunu (`http://localhost:5000`) başlatacaktır.
+2. Sunucu başladıktan sonra **`demo.html`** dosyasını tarayıcınızda açın.
+3. Üst durum çubuğundaki **Bağlantı** açılır menüsünden **`💻 Yerel Sunucu (Localhost:5000)`** seçeneğini seçin.
+4. Örnek butonlarına tıklayarak veya kendi belirlediğiniz metinleri girerek yerelinizde çalışan yapay zeka modelinin tahmin başarısını test edebilirsiniz.
 
 ---
 
