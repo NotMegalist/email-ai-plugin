@@ -4,7 +4,7 @@
 > 
 > * **Öğrenci:** Ahmet Sarp Kaya (20240108017)
 > * **Danışman:** Prof. Dr. İbrahim Soğukpınar
-> * **Kurum:** Piri Reis Üniversitesi - Bilgisayar Mühendisliği Bölümü - 2026
+> * **Kurum:** Piri Reis Üniversitesi - Bilgisayar Programcılığı Programı - 2026
 > * **Canlı API Sunucusu:** https://email-ai-plugin.onrender.com (Aktif)
 > * **Kod Deposu:** https://github.com/NotMegalist/email-ai-plugin
 
